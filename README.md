@@ -1,2 +1,2 @@
 # OSeMOSYS-PuLP
-OSeMOSYS-PuLP: A stochastic modelling framework for long-term energy systems modelling
+OSeMOSYS-PuLP: A stochastic modeling framework for long-term energy systems modeling
