@@ -1,20 +1,25 @@
 How to cite OSeMOSYS-PuLP:
 
+Dennis Dreier, Mark Howells, OSeMOSYS-PuLP: A Stochastic Modeling Framework for Long-Term Energy Systems Modeling. Energies 2019, 12, 1382, https://doi.org/10.3390/en12071382
 
+===========================================================================================================================================
 
 Dear Sir or Madam,
 
-OSeMOSYS-PuLP is a stochastic modeling framework for long-term energy systems modeling.
-It embeds a new code implementation of the OSeMOSYS modeling framework. The OSeMOSYS modeling 
-framework has been collaboratively developed and supported by many individuals and organizations.
+OSeMOSYS-PuLP is a stochastic modelling framework for long-term energy systems modelling.
+It embeds a new code implementation of the OSeMOSYS modelling framework. The OSeMOSYS modelling 
+framework has been collaboratively developed and supported by many individuals and organisations.
 In addition to the main reference, we also would like to ask you to cite the two additional 
-references A1 and A2 that both are key contributions to the development of the OSeMOSYS modeling framework. 
+references A1 and A2 that both are key contributions to the development of the OSeMOSYS modelling framework. 
 
 Thank you!
 
-
+===========================================================================================================================================
 
 Additional references:
 
-A1) Mark Howells, Holger Rogner, Neil Strachan, Charles Heaps, Hillard Huntington, Socrates Kypreos, Alison Hughes, Semida Silveira, Joe DeCarolis, Morgan Bazillian, Alexander Roehrl, OSeMOSYS: The Open Source Energy Modeling System: An introduction to its ethos, structure and development,Energy Policy, Volume 39, Issue 10, 2011, Pages 5850-5870, ISSN 0301-4215, https://doi.org/10.1016/j.enpol.2011.06.033.
-A2) Francesco Gardumi, Abhishek Shivakumar, Robbie Morrison, Constantinos Taliotis, Oliver Broad, Agnese Beltramo, Vignesh Sridharan, Mark Howells, Jonas Hörsch, Taco Niet, Youssef Almulla, Eunice Ramos, Thorsten Burandt, Gabriela Peña Balderrama, Gustavo Nikolaus Pinto de Moura, Eduardo Zepeda, Thomas Alfstad, From the development of an open-source energy modelling tool to its application and the creation of communities of practice: The example of OSeMOSYS, Energy Strategy Reviews, Volume 20, 2018, Pages 209-228, ISSN 2211-467X, https://doi.org/10.1016/j.esr.2018.03.005.
+A1)
+Mark Howells, Holger Rogner, Neil Strachan, Charles Heaps, Hillard Huntington, Socrates Kypreos, Alison Hughes, Semida Silveira, Joe DeCarolis, Morgan Bazillian, Alexander Roehrl, OSeMOSYS: The Open Source Energy Modeling System: An introduction to its ethos, structure and development,Energy Policy, Volume 39, Issue 10, 2011, Pages 5850-5870, ISSN 0301-4215, https://doi.org/10.1016/j.enpol.2011.06.033
+
+A2)
+Francesco Gardumi, Abhishek Shivakumar, Robbie Morrison, Constantinos Taliotis, Oliver Broad, Agnese Beltramo, Vignesh Sridharan, Mark Howells, Jonas Hörsch, Taco Niet, Youssef Almulla, Eunice Ramos, Thorsten Burandt, Gabriela Peña Balderrama, Gustavo Nikolaus Pinto de Moura, Eduardo Zepeda, Thomas Alfstad, From the development of an open-source energy modelling tool to its application and the creation of communities of practice: The example of OSeMOSYS, Energy Strategy Reviews, Volume 20, 2018, Pages 209-228, ISSN 2211-467X, https://doi.org/10.1016/j.esr.2018.03.005
