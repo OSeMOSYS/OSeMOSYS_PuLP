@@ -548,7 +548,7 @@ TechWithCapacityNeededToMeetPeakTS = {str(r): {str(t): p_df[(p_df['PARAM'] == "T
 # CapacityFactor
 CapacityFactor_default_value = p_default_df[p_default_df['PARAM'] == "CapacityFactor"].VALUE.iat[0]
 CapacityFactor_specified = tuple([(str(r),str(t),str(l),str(y)) for r, t, l, y in zip(p_df[p_df['PARAM'] == "CapacityFactor"].REGION, p_df[p_df['PARAM'] == "CapacityFactor"].TECHNOLOGY, p_df[p_df['PARAM'] == "CapacityFactor"].TIMESLICE, p_df[p_df['PARAM'] == "CapacityFactor"].YEAR)])
-CapacityFactor = {str(r): {str(t): {str(l): {str(y): p_df[(p_df['PARAM'] == "CapacityFactor") & (p_df['REGION'] == r) & (p_df['TECHNOLOGY'] == t) & (p_df['YEAR'] == y)].VALUE.iat[0] if (str(r),str(t),str(l),str(y)) in CapacityFactor_specified else CapacityFactor_default_value for y in YEAR} for l in TIMESLICE} for t in TECHNOLOGY} for r in REGION}
+CapacityFactor = {str(r): {str(t): {str(l): {str(y): p_df[(p_df['PARAM'] == "CapacityFactor") & (p_df['REGION'] == r) & (p_df['TECHNOLOGY'] == t) & (p_df['YEAR'] == y) & (p_df['TIMESLICE'] == l)].VALUE.iat[0] if (str(r),str(t),str(l),str(y)) in CapacityFactor_specified else CapacityFactor_default_value for y in YEAR} for l in TIMESLICE} for t in TECHNOLOGY} for r in REGION}
 
 # AvailabilityFactor
 AvailabilityFactor_default_value = p_default_df[p_default_df['PARAM'] == "AvailabilityFactor"].VALUE.iat[0]
