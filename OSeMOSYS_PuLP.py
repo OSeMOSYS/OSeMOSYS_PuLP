@@ -182,16 +182,16 @@ def generateRandomData(reference, list):
     """
     This function generates random data for the parameters included in the Monte Carlo Simulations.
 
-	reference (format: float): mean for normal distribution, mode for both triangular and uniform distributions
-	dist: type of distribution. Choose from: "normal", "triangular", "uniform" (format: string)
-	rel_sd: relative standard deviation from mean or mode. Unit: percent as decimals (format: float)
-	rel_min: relative minimum deviation from mean or mode. Unit: percent as decimals (format: float), must be a negative value
-	rel_max: relative maximum deviation from mean or mode. Unit: percent as decimals (format: float), must be a positive value
-  	array: array with potential values. One value out of the array will be randomly chosen.
-	==================================================================================================================
-	Note: To use the reference value without any distribution, then write as input in the excel file in the tab "MCS":
-	Columns: PARAM: "parameter name", DEFAULT_SETTING:	"1", DIST: "normal", REL_SD: "0".
-	This will make the code to choose the reference value as defined for the model without MCS.
+    reference (format: float): mean for normal distribution, mode for both triangular and uniform distributions
+    dist: type of distribution. Choose from: "normal", "triangular", "uniform" (format: string)
+    rel_sd: relative standard deviation from mean or mode. Unit: percent as decimals (format: float)
+    rel_min: relative minimum deviation from mean or mode. Unit: percent as decimals (format: float), must be a negative value
+    rel_max: relative maximum deviation from mean or mode. Unit: percent as decimals (format: float), must be a positive value
+    array: array with potential values. One value out of the array will be randomly chosen.
+    ==================================================================================================================
+    Note: To use the reference value without any distribution, then write as input in the excel file in the tab "MCS":
+    Columns: PARAM: "parameter name", DEFAULT_SETTING:	"1", DIST: "normal", REL_SD: "0".
+    This will make the code to choose the reference value as defined for the model without MCS.
     """
     dist, rel_sd, rel_min, rel_max, array = list[0], list[1], list[2], list[3], list[4]
 
@@ -219,7 +219,7 @@ def generateRandomData(reference, list):
     else:
         return 0
 
-		
+
 def saveResultsTemporary(dataframe, model_name, scenario):
 
     # Activate variable names in "var_dict" to be included in the results,
@@ -470,18 +470,18 @@ logging.info("{}\tSets are created.".format(dt.datetime.now().strftime("%Y-%m-%d
 
 # YearSplit
 YearSplit = p_df[p_df['PARAM'] == "YearSplit"][['TIMESLICE', 'YEAR', 'VALUE']].groupby('TIMESLICE')\
-	.apply(lambda df: df.set_index('YEAR')['VALUE'].to_dict()).to_dict()
+    .apply(lambda df: df.set_index('YEAR')['VALUE'].to_dict()).to_dict()
 
 # DiscountRate
 DiscountRate_default_value = p_default_df[p_default_df['PARAM'] == "DiscountRate"].VALUE.iat[0]
 DiscountRate_specified = tuple([(str(r)) for r in p_df[p_df['PARAM'] == "DiscountRate"].REGION])
 DiscountRate = {str(r): p_df[(p_df['PARAM'] == "DiscountRate") & (p_df['REGION'] == r)].VALUE.iat[0]\
-	if (str(r)) in DiscountRate_specified else DiscountRate_default_value for r in REGION}
+    if (str(r)) in DiscountRate_specified else DiscountRate_default_value for r in REGION}
 
 # DaySplit
 DaySplit_default_value = p_default_df[p_default_df['PARAM'] == "DaySplit"].VALUE.iat[0]
 DaySplit_specified = tuple([(str(lh), str(y)) for lh, y in zip(
-	p_df[p_df['PARAM'] == "DaySplit"].DAILYTIMEBRACKET, p_df[p_df['PARAM'] == "DaySplit"].YEAR)])
+    p_df[p_df['PARAM'] == "DaySplit"].DAILYTIMEBRACKET, p_df[p_df['PARAM'] == "DaySplit"].YEAR)])
 DaySplit = {str(lh): {str(y): p_df[(p_df['PARAM'] == "DaySplit") & (p_df['DAILYTIMEBRACKET'] == lh) & (p_df['YEAR'] == y)].VALUE.iat[0] if (str(lh), str(y)) in DaySplit_specified else DaySplit_default_value for y in YEAR} for lh in DAILYTIMEBRACKET}
 
 # Conversionls
@@ -769,867 +769,867 @@ logging.info("{}\tParameters are created.".format(dt.datetime.now().strftime("%Y
 i = 0
 while i <= mcs_num:
 
-	#########			Simulation loops     #########
+    #########			Simulation loops     #########
 
-	logging.info("{}\tModel run #{}".format(dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), i))
+    logging.info("{}\tModel run #{}".format(dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), i))
 
-	# ------------------------------------------------------------------------------------------------------------------
-	#    MODEL INITIALIZATION
-	# ------------------------------------------------------------------------------------------------------------------
-	
-	model = pulp.LpProblem(modelName, pulp.LpMinimize)
+    # ------------------------------------------------------------------------------------------------------------------
+    #    MODEL INITIALIZATION
+    # ------------------------------------------------------------------------------------------------------------------
 
-	# ------------------------------------------------------------------------------------------------------------------
-	#    MODEL VARIABLES
-	# ------------------------------------------------------------------------------------------------------------------
+    model = pulp.LpProblem(modelName, pulp.LpMinimize)
 
-	########			Demands 					#########
-	
-	RateOfDemand = {str(r): {str(l): {str(f): {str(y): newVar("RateOfDemand", 0, None, 'Continuous', r, l, f, y) for y in YEAR} for f in FUEL} for l in TIMESLICE} for r in REGION}
-	Demand = {str(r): {str(l): {str(f): {str(y): newVar("Demand", 0, None, 'Continuous', r, l, f, y) for y in YEAR} for f in FUEL} for l in TIMESLICE} for r in REGION}
-	
-	########			Storage                 	#########
-	
-	RateOfStorageCharge = {str(r): {str(s): {str(ls): {str(ld): {str(lh): {str(y): newVar("RateOfStorageCharge", 0, None, 'Continuous', r, s, ls, ld, lh, y) for y in YEAR} for lh in DAILYTIMEBRACKET} for ld in DAYTYPE} for ls in SEASON} for s in STORAGE} for r in REGION}
-	RateOfStorageDischarge = {str(r): {str(s): {str(ls): {str(ld): {str(lh): {str(y): newVar("RateOfStorageDischarge", None, None, 'Continuous', r, s, ls, ld, lh, y) for y in YEAR} for lh in DAILYTIMEBRACKET} for ld in DAYTYPE} for ls in SEASON} for s in STORAGE} for r in REGION}
-	NetChargeWithinYear = {str(r): {str(s): {str(ls): {str(ld): {str(lh): {str(y): newVar("NetChargeWithinYear", None, None, 'Continuous', r, s, ls, ld, lh, y) for y in YEAR} for lh in DAILYTIMEBRACKET} for ld in DAYTYPE} for ls in SEASON} for s in STORAGE} for r in REGION}
-	NetChargeWithinDay = {str(r): {str(s): {str(ls): {str(ld): {str(lh): {str(y): newVar("NetChargeWithinDay", None, None, 'Continuous', r, s, ls, ld, lh, y) for y in YEAR} for lh in DAILYTIMEBRACKET} for ld in DAYTYPE} for ls in SEASON} for s in STORAGE} for r in REGION}
-	StorageLevelYearStart = {str(r): {str(s): {str(y): newVar("StorageLevelYearStart", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
-	StorageLevelYearFinish = {str(r): {str(s): {str(y): newVar("StorageLevelYearFinish", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
-	StorageLevelSeasonStart = {str(r): {str(s): {str(ls): {str(y): newVar("StorageLevelSeasonStart", 0, None, 'Continuous', r, s, ls, y) for y in YEAR} for ls in SEASON} for s in STORAGE} for r in REGION}
-	StorageLevelDayTypeStart = {str(r): {str(s): {str(ls): {str(ld): {str(y): newVar("StorageLevelDayTypeStart", 0, None, 'Continuous', r, s, ls, ld, y) for y in YEAR} for ld in DAYTYPE} for ls in SEASON} for s in STORAGE} for r in REGION}
-	StorageLevelDayTypeFinish = {str(r): {str(s): {str(ls): {str(ld): {str(y): newVar("StorageLevelDayTypeFinish", 0, None, 'Continuous', r, s, ls, ld, y) for y in YEAR} for ld in DAYTYPE} for ls in SEASON} for s in STORAGE} for r in REGION}
-	StorageLowerLimit = {str(r): {str(s): {str(y): newVar("StorageLowerLimit", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
-	StorageUpperLimit = {str(r): {str(s): {str(y): newVar("StorageUpperLimit", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
-	AccumulatedNewStorageCapacity = {str(r): {str(s): {str(y): newVar("AccumulatedNewStorageCapacity", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
-	NewStorageCapacity = {str(r): {str(s): {str(y): newVar("NewStorageCapacity", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
-	CapitalInvestmentStorage = {str(r): {str(s): {str(y): newVar("CapitalInvestmentStorage", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
-	DiscountedCapitalInvestmentStorage = {str(r): {str(s): {str(y): newVar("DiscountedCapitalInvestmentStorage", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
-	SalvageValueStorage = {str(r): {str(s): {str(y): newVar("SalvageValueStorage", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
-	DiscountedSalvageValueStorage = {str(r): {str(s): {str(y): newVar("DiscountedSalvageValueStorage", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
-	TotalDiscountedStorageCost = {str(r): {str(s): {str(y): newVar("TotalDiscountedStorageCost", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
-	
-	#########			Capacity Variables 			#########
-	
-	NumberOfNewTechnologyUnits = {str(r): {str(t): {str(y): newVar("NumberOfNewTechnologyUnits", 0, None, 'Integer', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-	NewCapacity = {str(r): {str(t): {str(y): newVar("NewCapacity", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-	AccumulatedNewCapacity = {str(r): {str(t): {str(y): newVar("AccumulatedNewCapacity", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-	TotalCapacityAnnual = {str(r): {str(t): {str(y): newVar("TotalCapacityAnnual", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-	
-	#########			Activity Variables 			#########
-	
-	RateOfActivity = {str(r): {str(l): {str(t): {str(m): {str(y): newVar("RateOfActivity", 0, None, 'Continuous', r, l, t, m, y) for y in YEAR} for m in MODE_OF_OPERATION} for t in TECHNOLOGY} for l in TIMESLICE} for r in REGION}
-	RateOfTotalActivity = {str(r): {str(t): {str(l): {str(y): newVar("RateOfTotalActivity", 0, None, 'Continuous', r, t, l, y) for y in YEAR} for l in TIMESLICE} for t in TECHNOLOGY} for r in REGION}
-	TotalTechnologyAnnualActivity = {str(r): {str(t): {str(y): newVar("TotalTechnologyAnnualActivity", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-	TotalAnnualTechnologyActivityByMode = {str(r): {str(t): {str(m): {str(y): newVar("TotalAnnualTechnologyActivityByMode", 0, None, 'Continuous', r, t, m, y) for y in YEAR} for m in MODE_OF_OPERATION} for t in TECHNOLOGY} for r in REGION}
-	TotalTechnologyModelPeriodActivity = {str(r): {str(t): newVar("TotalTechnologyModelPeriodActivity", None, None, 'Continuous', r, t) for t in TECHNOLOGY} for r in REGION}
-	RateOfProductionByTechnologyByMode = {str(r): {str(l): {str(t): {str(m): {str(f): {str(y): newVar("RateOfProductionByTechnologyByMode", 0, None, 'Continuous', r, l, t, m, f, y) for y in YEAR} for f in FUEL} for m in MODE_OF_OPERATION} for t in TECHNOLOGY} for l in TIMESLICE} for r in REGION}
-	RateOfProductionByTechnology = {str(r): {str(l): {str(t): {str(f): {str(y): newVar("RateOfProductionByTechnology", 0, None, 'Continuous', r, l, t, f, y) for y in YEAR} for f in FUEL} for t in TECHNOLOGY} for l in TIMESLICE} for r in REGION}
-	ProductionByTechnology = {str(r): {str(l): {str(t): {str(f): {str(y): newVar("ProductionByTechnology", 0, None, 'Continuous', r, l, t, f, y) for y in YEAR} for f in FUEL} for t in TECHNOLOGY} for l in TIMESLICE} for r in REGION}
-	ProductionByTechnologyAnnual = {str(r): {str(t): {str(f): {str(y): newVar("ProductionByTechnologyAnnual", 0, None, 'Continuous', r, t, f, y) for y in YEAR} for f in FUEL} for t in TECHNOLOGY} for r in REGION}
-	RateOfProduction = {str(r): {str(l): {str(f): {str(y): newVar("RateOfProduction", 0, None, 'Continuous', r, l, f, y) for y in YEAR} for f in FUEL} for l in TIMESLICE} for r in REGION}
-	Production = {str(r): {str(l): {str(f): {str(y): newVar("Production", 0, None, 'Continuous', r, l, f, y) for y in YEAR} for f in FUEL} for l in TIMESLICE} for r in REGION}
-	RateOfUseByTechnologyByMode = {str(r): {str(l): {str(t): {str(m): {str(f): {str(y): newVar("RateOfUseByTechnologyByMode", 0, None, 'Continuous', r, l, t, m, f, y) for y in YEAR} for f in FUEL} for m in MODE_OF_OPERATION} for t in TECHNOLOGY} for l in TIMESLICE} for r in REGION}
-	RateOfUseByTechnology = {str(r): {str(l): {str(t): {str(f): {str(y): newVar("RateOfUseByTechnology", 0, None, 'Continuous', r, l, t, f, y) for y in YEAR} for f in FUEL} for t in TECHNOLOGY} for l in TIMESLICE} for r in REGION}
-	UseByTechnologyAnnual = {str(r): {str(t): {str(f): {str(y): newVar("UseByTechnologyAnnual", 0, None, 'Continuous', r, t, f, y) for y in YEAR} for f in FUEL} for t in TECHNOLOGY} for r in REGION}
-	RateOfUse = {str(r): {str(l): {str(f): {str(y): newVar("RateOfUse", 0, None, 'Continuous', r, l, f, y) for y in YEAR} for f in FUEL} for l in TIMESLICE} for r in REGION}
-	UseByTechnology = {str(r): {str(l): {str(t): {str(f): {str(y): newVar("UseByTechnology", 0, None, 'Continuous', r, l, t, f, y) for y in YEAR} for f in FUEL} for t in TECHNOLOGY} for l in TIMESLICE} for r in REGION}
-	Use = {str(r): {str(l): {str(f): {str(y): newVar("Use", 0, None, 'Continuous', r, l, f, y) for y in YEAR} for f in FUEL} for l in TIMESLICE} for r in REGION}
-	Trade = {str(r): {str(rr): {str(l): {str(f): {str(y): newVar("Trade", None, None, 'Continuous', r, rr, l, f, y) for y in YEAR} for f in FUEL} for l in TIMESLICE} for rr in REGION2} for r in REGION}
-	TradeAnnual = {str(r): {str(rr): {str(f): {str(y): newVar("TradeAnnual", None, None, 'Continuous', r, rr, f, y) for y in YEAR} for f in FUEL} for rr in REGION2} for r in REGION}
-	ProductionAnnual = {str(r): {str(f): {str(y): newVar("ProductionAnnual", 0, None, 'Continuous', r, f, y) for y in YEAR} for f in FUEL} for r in REGION}
-	UseAnnual = {str(r): {str(f): {str(y): newVar("UseAnnual", 0, None, 'Continuous', r, f, y) for y in YEAR} for f in FUEL} for r in REGION}
-	
-	#########			Costing Variables 			#########
-	
-	CapitalInvestment = {str(r): {str(t): {str(y): newVar("CapitalInvestment", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-	DiscountedCapitalInvestment = {str(r): {str(t): {str(y): newVar("DiscountedCapitalInvestment", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-	SalvageValue = {str(r): {str(t): {str(y): newVar("SalvageValue", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-	DiscountedSalvageValue = {str(r): {str(t): {str(y): newVar("DiscountedSalvageValue", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-	OperatingCost = {str(r): {str(t): {str(y): newVar("OperatingCost", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-	DiscountedOperatingCost = {str(r): {str(t): {str(y): newVar("DiscountedOperatingCost", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-	AnnualVariableOperatingCost = {str(r): {str(t): {str(y): newVar("AnnualVariableOperatingCost", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-	AnnualFixedOperatingCost = {str(r): {str(t): {str(y): newVar("AnnualFixedOperatingCost", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-	TotalDiscountedCostByTechnology = {str(r): {str(t): {str(y): newVar("TotalDiscountedCostByTechnology", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-	TotalDiscountedCost = {str(r): {str(y): newVar("TotalDiscountedCost", 0, None, 'Continuous', r, y) for y in YEAR} for r in REGION}
-	ModelPeriodCostByRegion = {str(r): newVar("ModelPeriodCostByRegion", 0, None, 'Continuous', r) for r in REGION}
-	
-	#########			Reserve Margin				#########
-	
-	TotalCapacityInReserveMargin = {str(r): {str(y): newVar("TotalCapacityInReserveMargin", 0, None, 'Continuous', r, y) for y in YEAR} for r in REGION}
-	DemandNeedingReserveMargin = {str(r): {str(l): {str(y): newVar("DemandNeedingReserveMargin", 0, None, 'Continuous', r, l, y) for y in YEAR} for l in TIMESLICE} for r in REGION}
-	
-	#########			RE Gen Target				#########
-	
-	TotalREProductionAnnual = {str(r): {str(y): newVar("TotalREProductionAnnual", None, None, 'Continuous', r, y) for y in YEAR} for r in REGION}
-	RETotalProductionOfTargetFuelAnnual = {str(r): {str(y): newVar("RETotalProductionOfTargetFuelAnnual", None, None, 'Continuous', r, y) for y in YEAR} for r in REGION}
-	
-	#########			Emissions					#########
-	
-	AnnualTechnologyEmissionByMode = {str(r): {str(t): {str(e): {str(m): {str(y): newVar("AnnualTechnologyEmissionByMode", 0, None, 'Continuous', r, t, e, m, y) for y in YEAR} for m in MODE_OF_OPERATION} for e in EMISSION} for t in TECHNOLOGY} for r in REGION}
-	AnnualTechnologyEmission = {str(r): {str(t): {str(e): {str(y): newVar("AnnualTechnologyEmission", 0, None, 'Continuous', r, t, e, y) for y in YEAR} for e in EMISSION} for t in TECHNOLOGY} for r in REGION}
-	AnnualTechnologyEmissionPenaltyByEmission = {str(r): {str(t): {str(e): {str(y): newVar("AnnualTechnologyEmissionPenaltyByEmission", 0, None, 'Continuous', r, t, e, y) for y in YEAR} for e in EMISSION} for t in TECHNOLOGY} for r in REGION}
-	AnnualTechnologyEmissionsPenalty = {str(r): {str(t): {str(y): newVar("AnnualTechnologyEmissionsPenalty", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-	DiscountedTechnologyEmissionsPenalty = {str(r): {str(t): {str(y): newVar("DiscountedTechnologyEmissionsPenalty", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-	AnnualEmissions = {str(r): {str(e): {str(y): newVar("AnnualEmissions", 0, None, 'Continuous', r, e, y) for y in YEAR} for e in EMISSION} for r in REGION}
-	ModelPeriodEmissions = {str(r): {str(e): newVar("ModelPeriodEmissions", 0, None, 'Continuous', r, e) for e in EMISSION} for r in REGION}
-	
-	logging.info("{}\tVariables are created".format(dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+    # ------------------------------------------------------------------------------------------------------------------
+    #    MODEL VARIABLES
+    # ------------------------------------------------------------------------------------------------------------------
 
-	# ------------------------------------------------------------------------------------------------------------------
-	#    OBJECTIVE FUNCTION
-	# ------------------------------------------------------------------------------------------------------------------
-	
-	cost = pulp.LpVariable("cost", cat='Continuous')
-	model += cost, "Objective"
-	model += cost == pulp.lpSum([TotalDiscountedCost[r][y] for r in REGION for y in YEAR]), "Cost_function"
+    ########			Demands 					#########
 
-	# ------------------------------------------------------------------------------------------------------------------
-	#    CONSTRAINTS
-	# ------------------------------------------------------------------------------------------------------------------
+    RateOfDemand = {str(r): {str(l): {str(f): {str(y): newVar("RateOfDemand", 0, None, 'Continuous', r, l, f, y) for y in YEAR} for f in FUEL} for l in TIMESLICE} for r in REGION}
+    Demand = {str(r): {str(l): {str(f): {str(y): newVar("Demand", 0, None, 'Continuous', r, l, f, y) for y in YEAR} for f in FUEL} for l in TIMESLICE} for r in REGION}
 
-	for r in REGION:
-		for l in TIMESLICE:
-			for f in FUEL:
-				for y in YEAR:
-					# EQ_SpecifiedDemand
-					model += RateOfDemand[r][l][f][y] == SpecifiedAnnualDemand[r][f][y] * SpecifiedDemandProfile[r][f][l][y] / YearSplit[l][y], ""
-	
-	#########			Capacity Adequacy A	     	#########
-	
-	for r in REGION:
-		for t in TECHNOLOGY:
-			for y in YEAR:
-				# CAa1_TotalNewCapacity
-				model += AccumulatedNewCapacity[r][t][y] == pulp.lpSum([NewCapacity[r][t][yy] for yy in YEAR if (int(y) - int(yy) < OperationalLife[r][t]) and (int(y) - int(yy) >= 0)]), ""
-				# CAa2_TotalAnnualCapacity
-				model += TotalCapacityAnnual[r][t][y] == AccumulatedNewCapacity[r][t][y] + ResidualCapacity[r][t][y], ""
-	
-				for l in TIMESLICE:
-					# CAa3_TotalActivityOfEachTechnology
-					model += RateOfTotalActivity[r][t][l][y] == pulp.lpSum([RateOfActivity[r][l][t][m][y] for m in MODE_OF_OPERATION]), ""
-					# CAa4_Constraint_Capacity
-					model += RateOfTotalActivity[r][t][l][y] <= TotalCapacityAnnual[r][t][y] * CapacityFactor[r][t][l][y] * CapacityToActivityUnit[r][t], ""
-	
-				if CapacityOfOneTechnologyUnit[r][t][y] != 0:
-					# CAa5_TotalNewCapacity
-					model += NewCapacity[r][t][y] == CapacityOfOneTechnologyUnit[r][t][y] * NumberOfNewTechnologyUnits[r][t][y], ""
-	
-	#########			Capacity Adequacy B		 	#########
-	
-	for r in REGION:
-		for t in TECHNOLOGY:
-			for y in YEAR:
-				# CAb1_PlannedMaintenance
-				model += pulp.lpSum([RateOfTotalActivity[r][t][l][y] * YearSplit[l][y] for l in TIMESLICE]) <= pulp.lpSum([TotalCapacityAnnual[r][t][y] * CapacityFactor[r][t][l][y] * YearSplit[l][y] for l in TIMESLICE]) * AvailabilityFactor[r][t][y] * CapacityToActivityUnit[r][t], ""
-	
-	#########			Energy Balance A    	 	#########
-	
-	for r in REGION:
-		for l in TIMESLICE:
-			for f in FUEL:
-				for y in YEAR:
-					for t in TECHNOLOGY:
-						for m in MODE_OF_OPERATION:
-							# EBa1_RateOfFuelProduction1
-							if OutputActivityRatio[r][t][f][m][y] != 0:
-								model += RateOfProductionByTechnologyByMode[r][l][t][m][f][y] == RateOfActivity[r][l][t][m][y] * OutputActivityRatio[r][t][f][m][y], ""
-							else:
-								model += RateOfProductionByTechnologyByMode[r][l][t][m][f][y] == 0, ""
-						# EBa2_RateOfFuelProduction2
-						model += RateOfProductionByTechnology[r][l][t][f][y] == pulp.lpSum([RateOfProductionByTechnologyByMode[r][l][t][m][f][y] for m in MODE_OF_OPERATION if OutputActivityRatio[r][t][f][m][y] != 0]), ""
-					# EBa3_RateOfFuelProduction3
-					model += RateOfProduction[r][l][f][y] == pulp.lpSum([RateOfProductionByTechnology[r][l][t][f][y] for t in TECHNOLOGY]), ""
-	
-					for t in TECHNOLOGY:
-						for m in MODE_OF_OPERATION:
-							# EBa4_RateOfFuelUse1
-							if InputActivityRatio[r][t][f][m][y] != 0:
-								model += RateOfUseByTechnologyByMode[r][l][t][m][f][y] == RateOfActivity[r][l][t][m][y] * InputActivityRatio[r][t][f][m][y], ""
-						# EBa5_RateOfFuelUse2
-						model += RateOfUseByTechnology[r][l][t][f][y] == pulp.lpSum([RateOfUseByTechnologyByMode[r][l][t][m][f][y] for m in MODE_OF_OPERATION if InputActivityRatio[r][t][f][m][y] != 0]), ""
-					# EBa6_RateOfFuelUse3
-					model += RateOfUse[r][l][f][y] == pulp.lpSum([RateOfUseByTechnology[r][l][t][f][y] for t in TECHNOLOGY]), ""
-					# EBa7_EnergyBalanceEachTS1
-					model += Production[r][l][f][y] == RateOfProduction[r][l][f][y] * YearSplit[l][y], ""
-					# EBa8_EnergyBalanceEachTS2
-					model += Use[r][l][f][y] == RateOfUse[r][l][f][y] * YearSplit[l][y], ""
-					# EBa9_EnergyBalanceEachTS3
-					model += Demand[r][l][f][y] == RateOfDemand[r][l][f][y] * YearSplit[l][y], ""
+    ########			Storage                 	#########
 
-					for rr in REGION2:
-						# EBa10_EnergyBalanceEachTS4
-						model += Trade[r][rr][l][f][y] == -Trade[rr][r][l][f][y], ""
-					# EBa11_EnergyBalanceEachTS5
-					model += Production[r][l][f][y] >= Demand[r][l][f][y] + Use[r][l][f][y] + pulp.lpSum([Trade[r][rr][l][f][y] * TradeRoute[r][rr][f][y] for rr in REGION2]), ""
-	
-	#########        	Energy Balance B		 	#########
-	
-	for r in REGION:
-		for f in FUEL:
-			for y in YEAR:
-				# EBb1_EnergyBalanceEachYear1
-				model += ProductionAnnual[r][f][y] == pulp.lpSum([Production[r][l][f][y] for l in TIMESLICE]), ""
-				# EBb2_EnergyBalanceEachYear2
-				model += UseAnnual[r][f][y] == pulp.lpSum([Use[r][l][f][y] for l in TIMESLICE]), ""
-	
-				for rr in REGION2:
-					# EBb3_EnergyBalanceEachYear3
-					model += TradeAnnual[r][rr][f][y] == pulp.lpSum([Trade[r][rr][l][f][y] for l in TIMESLICE]), ""
-				# EBb4_EnergyBalanceEachYear4
-				model += ProductionAnnual[r][f][y] >= UseAnnual[r][f][y] + pulp.lpSum([TradeAnnual[r][rr][f][y] * TradeRoute[r][rr][f][y] for rr in REGION2]) + AccumulatedAnnualDemand[r][f][y], ""
-	
-	#########			Accounting Technology Production/Use	#########
-	
-	for r in REGION:
-		for t in TECHNOLOGY:
-			for y in YEAR:
-				for l in TIMESLICE:
-					for f in FUEL:
-						# Acc1_FuelProductionByTechnology
-						model += ProductionByTechnology[r][l][t][f][y] == RateOfProductionByTechnology[r][l][t][f][y] * YearSplit[l][y], ""
-						# Acc2_FuelUseByTechnology
-						model += UseByTechnology[r][l][t][f][y] == RateOfUseByTechnology[r][l][t][f][y] * YearSplit[l][y], ""
-	
-				for m in MODE_OF_OPERATION:
-					# Acc3_AverageAnnualRateOfActivity
-					model += TotalAnnualTechnologyActivityByMode[r][t][m][y] == pulp.lpSum([RateOfActivity[r][l][t][m][y] * YearSplit[l][y] for l in TIMESLICE]), ""
-		# Acc4_ModelPeriodCostByRegion
-		model += ModelPeriodCostByRegion[r] == pulp.lpSum([TotalDiscountedCost[r][y] for y in YEAR]), ""
-	
-	#########			Storage Equations			#########
-	
-	for r in REGION:
-		for s in STORAGE:
-			for y in YEAR:
-				for ls in SEASON:
-					for ld in DAYTYPE:
-						for lh in DAILYTIMEBRACKET:
-							# S1_RateOfStorageCharge
-							model += RateOfStorageCharge[r][s][ls][ld][lh][y] == pulp.lpSum([RateOfActivity[r][l][t][m][y] * TechnologyToStorage[r][t][s][m] * Conversionls[l][ls] * Conversionld[l][ld] * Conversionlh[l][lh] for t in TECHNOLOGY for m in MODE_OF_OPERATION for l in TIMESLICE if TechnologyToStorage[r][t][s][m] > 0]), ""
-							# S2_RateOfStorageDischarge
-							model += RateOfStorageDischarge[r][s][ls][ld][lh][y] == pulp.lpSum([RateOfActivity[r][l][t][m][y] * TechnologyFromStorage[r][t][s][m] * Conversionls[l][ls] * Conversionld[l][ld] * Conversionlh[l][lh] for t in TECHNOLOGY for m in MODE_OF_OPERATION for l in TIMESLICE if TechnologyFromStorage[r][t][s][m] > 0]), ""
-							# S3_NetChargeWithinYear
-							model += NetChargeWithinYear[r][s][ls][ld][lh][y] == pulp.lpSum([(RateOfStorageCharge[r][s][ls][ld][lh][y] - RateOfStorageDischarge[r][s][ls][ld][lh][y]) * YearSplit[l][y] * Conversionls[l][ls] * Conversionld[l][ld] * Conversionlh[l][lh] for l in TIMESLICE if (Conversionls[l][ls] > 0) and (Conversionld[l][ld] > 0) and (Conversionlh[l][lh] > 0)]), ""
-							# S4_NetChargeWithinDay
-							model += NetChargeWithinDay[r][s][ls][ld][lh][y] == (RateOfStorageCharge[r][s][ls][ld][lh][y] - RateOfStorageDischarge[r][s][ls][ld][lh][y]) * DaySplit[lh][y], ""
+    RateOfStorageCharge = {str(r): {str(s): {str(ls): {str(ld): {str(lh): {str(y): newVar("RateOfStorageCharge", 0, None, 'Continuous', r, s, ls, ld, lh, y) for y in YEAR} for lh in DAILYTIMEBRACKET} for ld in DAYTYPE} for ls in SEASON} for s in STORAGE} for r in REGION}
+    RateOfStorageDischarge = {str(r): {str(s): {str(ls): {str(ld): {str(lh): {str(y): newVar("RateOfStorageDischarge", None, None, 'Continuous', r, s, ls, ld, lh, y) for y in YEAR} for lh in DAILYTIMEBRACKET} for ld in DAYTYPE} for ls in SEASON} for s in STORAGE} for r in REGION}
+    NetChargeWithinYear = {str(r): {str(s): {str(ls): {str(ld): {str(lh): {str(y): newVar("NetChargeWithinYear", None, None, 'Continuous', r, s, ls, ld, lh, y) for y in YEAR} for lh in DAILYTIMEBRACKET} for ld in DAYTYPE} for ls in SEASON} for s in STORAGE} for r in REGION}
+    NetChargeWithinDay = {str(r): {str(s): {str(ls): {str(ld): {str(lh): {str(y): newVar("NetChargeWithinDay", None, None, 'Continuous', r, s, ls, ld, lh, y) for y in YEAR} for lh in DAILYTIMEBRACKET} for ld in DAYTYPE} for ls in SEASON} for s in STORAGE} for r in REGION}
+    StorageLevelYearStart = {str(r): {str(s): {str(y): newVar("StorageLevelYearStart", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
+    StorageLevelYearFinish = {str(r): {str(s): {str(y): newVar("StorageLevelYearFinish", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
+    StorageLevelSeasonStart = {str(r): {str(s): {str(ls): {str(y): newVar("StorageLevelSeasonStart", 0, None, 'Continuous', r, s, ls, y) for y in YEAR} for ls in SEASON} for s in STORAGE} for r in REGION}
+    StorageLevelDayTypeStart = {str(r): {str(s): {str(ls): {str(ld): {str(y): newVar("StorageLevelDayTypeStart", 0, None, 'Continuous', r, s, ls, ld, y) for y in YEAR} for ld in DAYTYPE} for ls in SEASON} for s in STORAGE} for r in REGION}
+    StorageLevelDayTypeFinish = {str(r): {str(s): {str(ls): {str(ld): {str(y): newVar("StorageLevelDayTypeFinish", 0, None, 'Continuous', r, s, ls, ld, y) for y in YEAR} for ld in DAYTYPE} for ls in SEASON} for s in STORAGE} for r in REGION}
+    StorageLowerLimit = {str(r): {str(s): {str(y): newVar("StorageLowerLimit", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
+    StorageUpperLimit = {str(r): {str(s): {str(y): newVar("StorageUpperLimit", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
+    AccumulatedNewStorageCapacity = {str(r): {str(s): {str(y): newVar("AccumulatedNewStorageCapacity", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
+    NewStorageCapacity = {str(r): {str(s): {str(y): newVar("NewStorageCapacity", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
+    CapitalInvestmentStorage = {str(r): {str(s): {str(y): newVar("CapitalInvestmentStorage", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
+    DiscountedCapitalInvestmentStorage = {str(r): {str(s): {str(y): newVar("DiscountedCapitalInvestmentStorage", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
+    SalvageValueStorage = {str(r): {str(s): {str(y): newVar("SalvageValueStorage", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
+    DiscountedSalvageValueStorage = {str(r): {str(s): {str(y): newVar("DiscountedSalvageValueStorage", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
+    TotalDiscountedStorageCost = {str(r): {str(s): {str(y): newVar("TotalDiscountedStorageCost", 0, None, 'Continuous', r, s, y) for y in YEAR} for s in STORAGE} for r in REGION}
 
-				# S5_and_S6_StorageLevelYearStart
-				if int(y) == min([int(yy) for yy in YEAR]):
-					model += StorageLevelYearStart[r][s][y] == StorageLevelStart[r][s], ""
-				else:
-					model += StorageLevelYearStart[r][s][y] == StorageLevelYearStart[r][s][str(int(y)-1)] + pulp.lpSum([NetChargeWithinYear[r][s][ls][ld][lh][str(int(y)-1)] for ls in SEASON for ld in DAYTYPE for lh in DAILYTIMEBRACKET]), ""
-				# S7_and_S8_StorageLevelYearFinish
-				if int(y) < max([int(yy) for yy in YEAR]):
-					model += StorageLevelYearFinish[r][s][y] == StorageLevelYearStart[r][s][str(int(y) + 1)], ""
-				else:
-					model += StorageLevelYearFinish[r][s][y] == StorageLevelYearStart[r][s][y] + pulp.lpSum([NetChargeWithinYear[r][s][ls][ld][lh][y] for ls in SEASON for ld in DAYTYPE for lh in DAILYTIMEBRACKET]), ""
-	
-				for ls in SEASON:
-					# S9_and_S10_StorageLevelSeasonStart
-					if int(ls) == min([int(lsls) for lsls in SEASON]):
-						model += StorageLevelSeasonStart[r][s][ls][y] == StorageLevelYearStart[r][s][y], ""
-					else:
-						model += StorageLevelSeasonStart[r][s][ls][y] == StorageLevelSeasonStart[r][s][str(int(ls)-1)][y] + pulp.lpSum([NetChargeWithinYear[r][s][str(int(ls)-1)][ld][lh][y] for ld in DAYTYPE for lh in DAILYTIMEBRACKET]), ""
+    #########			Capacity Variables 			#########
 
-					for ld in DAYTYPE:
-						# S11_and_S12_StorageLevelDayTypeStart
-						if int(ld) == min([int(ldld) for ldld in DAYTYPE]):
-							model += StorageLevelDayTypeStart[r][s][ls][ld][y] == StorageLevelSeasonStart[r][s][ls][y], ""
-						else:
-							model += StorageLevelDayTypeStart[r][s][ls][ld][y] == StorageLevelDayTypeStart[r][s][ls][str(int(ld)-1)][y] + pulp.lpSum([NetChargeWithinDay[r][s][ls][str(int(ld)-1)][lh][y] * DaysInDayType[ls][str(int(ld)-1)][y] for lh in DAILYTIMEBRACKET]), ""
-						# S13_and_S14_and_S15_StorageLevelDayTypeFinish
-						if (int(ld) == max([int(ldld) for ldld in DAYTYPE])) and (int(ls) == max([int(lsls) for lsls in SEASON])):
-							model += StorageLevelDayTypeFinish[r][s][ls][ld][y] == StorageLevelYearFinish[r][s][y], ""
-						elif int(ld) == max([int(ldld) for ldld in DAYTYPE]):
-							model += StorageLevelDayTypeFinish[r][s][ls][ld][y] == StorageLevelSeasonStart[r][s][str(int(ls)+1)][y], ""
-						else:
-							model += StorageLevelDayTypeFinish[r][s][ls][ld][y] == StorageLevelDayTypeFinish[r][s][ls][str(int(ld)+1)][y] - pulp.lpSum([NetChargeWithinDay[r][s][ls][str(int(ld)+1)][lh][y] * DaysInDayType[ls][str(int(ld)+1)][y] for lh in DAILYTIMEBRACKET]), ""
-	
-	##########			Storage Constraints			#########
-	
-	for r in REGION:
-		for s in STORAGE:
-			for y in YEAR:
-				for ls in SEASON:
-					for ld in DAYTYPE:
-						for lh in DAILYTIMEBRACKET:
-							# SC1_LowerLimit_BeginningOfDailyTimeBracketOfFirstInstanceOfDayTypeInFirstWeekConstraint
-							model += (StorageLevelDayTypeStart[r][s][ls][ld][y] + pulp.lpSum([NetChargeWithinDay[r][s][ls][ld][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh)-int(lhlh) > 0])) - StorageLowerLimit[r][s][y] >= 0, ""
-							# SC1_UpperLimit_BeginningOfDailyTimeBracketOfFirstInstanceOfDayTypeInFirstWeekConstraint
-							model += (StorageLevelDayTypeStart[r][s][ls][ld][y] + pulp.lpSum([NetChargeWithinDay[r][s][ls][ld][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh)-int(lhlh) > 0])) - StorageUpperLimit[r][s][y] <= 0, ""
-							# SC2_LowerLimit_EndOfDailyTimeBracketOfLastInstanceOfDayTypeInFirstWeekConstraint
-							if int(ld) > min([int(ldld) for ldld in DAYTYPE]):
-								model += (StorageLevelDayTypeStart[r][s][ls][ld][y] - pulp.lpSum([NetChargeWithinDay[r][s][ls][str(int(ld)-1)][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh)-int(lhlh) < 0])) - StorageLowerLimit[r][s][y] >= 0, ""
-							# SC2_LowerLimit_EndOfDailyTimeBracketOfLastInstanceOfDayTypeInFirstWeekConstraint
-							if int(ld) > min([int(ldld) for ldld in DAYTYPE]):
-								model += (StorageLevelDayTypeStart[r][s][ls][ld][y] - pulp.lpSum([NetChargeWithinDay[r][s][ls][str(int(ld)-1)][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh) - int(lhlh) < 0])) - StorageUpperLimit[r][s][y] <= 0, ""
-							# SC3_LowerLimit_EndOfDailyTimeBracketOfLastInstanceOfDayTypeInLastWeekConstraint
-							model += (StorageLevelDayTypeFinish[r][s][ls][ld][y] - pulp.lpSum([NetChargeWithinDay[r][s][ls][ld][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh) - int(lhlh) < 0])) - StorageLowerLimit[r][s][y] >= 0, ""
-							# SC3_UpperLimit_EndOfDailyTimeBracketOfLastInstanceOfDayTypeInLastWeekConstraint
-							model += (StorageLevelDayTypeFinish[r][s][ls][ld][y] - pulp.lpSum([NetChargeWithinDay[r][s][ls][ld][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh) - int(lhlh) < 0])) - StorageUpperLimit[r][s][y] <= 0, ""
-							# SC4_LowerLimit_BeginningOfDailyTimeBracketOfFirstInstanceOfDayTypeInLastWeekConstraint
-							if int(ld) > min([int(ldld) for ldld in DAYTYPE]):
-								model += (StorageLevelDayTypeFinish[r][s][ls][str(int(ld)-1)][y] + pulp.lpSum([NetChargeWithinDay[r][s][ls][ld][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh) - int(lhlh) > 0])) - StorageLowerLimit[r][s][y] >= 0, ""
-							# SC4_UpperLimit_BeginningOfDailyTimeBracketOfFirstInstanceOfDayTypeInLastWeekConstraint
-							if int(ld) > min([int(ldld) for ldld in DAYTYPE]):
-								model += (StorageLevelDayTypeFinish[r][s][ls][str(int(ld)-1)][y] + pulp.lpSum([NetChargeWithinDay[r][s][ls][ld][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh) - int(lhlh) > 0])) - StorageUpperLimit[r][s][y] <= 0, ""
-							# SC5_MaxChargeConstraint
-							model += RateOfStorageCharge[r][s][ls][ld][lh][y] <= StorageMaxChargeRate[r][s], ""
-							# SC6_MaxDischargeConstraint
-							model += RateOfStorageDischarge[r][s][ls][ld][lh][y] <= StorageMaxDischargeRate[r][s], ""
-	
-	#########			Storage Investments			#########
-	
-	for r in REGION:
-		for s in STORAGE:
-			for y in YEAR:
-				# SI1_StorageUpperLimit
-				model += StorageUpperLimit[r][s][y] == AccumulatedNewStorageCapacity[r][s][y] + ResidualStorageCapacity[r][s][y], ""
-				# SI2_StorageLowerLimit
-				model += StorageLowerLimit[r][s][y] == MinStorageCharge[r][s][y] * StorageUpperLimit[r][s][y], ""
-				# SI3_TotalNewStorage
-				model += AccumulatedNewStorageCapacity[r][s][y] == pulp.lpSum([NewStorageCapacity[r][s][yy] for yy in YEAR if (int(y) - int(yy) < OperationalLifeStorage[r][s]) and (int(y)-int(yy) >= 0)]), ""
-				# SI4_UndiscountedCapitalInvestmentStorage
-				model += CapitalInvestmentStorage[r][s][y] == CapitalCostStorage[r][s][y] * NewStorageCapacity[r][s][y], ""
-				# SI5_DiscountingCapitalInvestmentStorage
-				model += DiscountedCapitalInvestmentStorage[r][s][y] == CapitalInvestmentStorage[r][s][y] * (1/ ((1+DiscountRate[r])**(int(y) - min([int(yy) for yy in YEAR])))), ""
-				# SI6_SalvageValueStorageAtEndOfPeriod1
-				if int(y) + OperationalLifeStorage[r][s] - 1 <= max([int(yy) for yy in YEAR]):
-					model += SalvageValueStorage[r][s][y] == 0, ""
-				# SI7_SalvageValueStorageAtEndOfPeriod2
-				if ((DepreciationMethod[r] == 1) and (int(y)+OperationalLifeStorage[r][s]-1 > max([int(yy) for yy in YEAR])) and (DiscountRate[r] == 0)) or ((DepreciationMethod[r] == 2) and (int(y)+OperationalLifeStorage[r][s]-1 > max([int(yy) for yy in YEAR]))):
-					model += SalvageValueStorage[r][s][y] == CapitalInvestmentStorage[r][s][y] * (1-(max([int(yy) for yy in YEAR])-int(y)+1))/OperationalLifeStorage[r][s], ""
-				# SI8_SalvageValueStorageAtEndOfPeriod3
-				if (DepreciationMethod[r] == 1) and (int(y)+OperationalLifeStorage[r][s]-1 > max([int(yy) for yy in YEAR])) and (DiscountRate[r] > 0):
-					model += SalvageValueStorage[r][s][y] == CapitalInvestmentStorage[r][s][y] * (1-(((1+DiscountRate[r])**(max([int(yy) for yy in YEAR]) - int(y)+1)-1)/((1+DiscountRate[r])**OperationalLifeStorage[r][s]-1))), ""
-				# SI9_SalvageValueStorageDiscountedToStartYear
-				model += DiscountedSalvageValueStorage[r][s][y] == SalvageValueStorage[r][s][y] * (1 /((1+DiscountRate[r])**(max([int(yy) for yy in YEAR])-min([int(yy) for yy in YEAR])+1))), ""
-				# SI10_TotalDiscountedCostByStorage
-				model += TotalDiscountedStorageCost[r][s][y] == DiscountedCapitalInvestmentStorage[r][s][y]-DiscountedSalvageValueStorage[r][s][y], ""
-	
-	#########			Capital Costs 		     	#########
-	
-	for r in REGION:
-		for t in TECHNOLOGY:
-			for y in YEAR:
-				# CC1_UndiscountedCapitalInvestment
-				model += CapitalInvestment[r][t][y] == CapitalCost[r][t][y] * NewCapacity[r][t][y],  ""
-				# CC2_DiscountingCapitalInvestment
-				model += DiscountedCapitalInvestment[r][t][y] == CapitalInvestment[r][t][y] * (1/((1 + DiscountRate[r]) ** (int(y) - min([int(yy) for yy in YEAR])))), ""
-	
-	#########           Salvage Value            	#########
-	
-	for r in REGION:
-		for y in YEAR:
-			for t in TECHNOLOGY:
-				# SV1_SalvageValueAtEndOfPeriod1
-				if (DepreciationMethod[r] == 1) and (int(y) + OperationalLife[r][t] - 1 > max([int(yy) for yy in YEAR])) and (DiscountRate[r] > 0):
-					model += SalvageValue[r][t][y] == CapitalCost[r][t][y] * NewCapacity[r][t][y] * (1 - (((1 + DiscountRate[r]) ** (max([int(yy) for yy in YEAR]) - int(y) + 1) - 1) / ((1 + DiscountRate[r]) ** OperationalLife[r][t] - 1))), ""
-				# SV2_SalvageValueAtEndOfPeriod2
-				if ((DepreciationMethod[r] == 1) and (int(y) + OperationalLife[r][t] - 1 > max([int(yy) for yy in YEAR])) and (DiscountRate[r] == 0)) or ((DepreciationMethod[r] == 2) and (int(y) + OperationalLife[r][t] - 1 > max([int(yy) for yy in YEAR]))):
-					model += SalvageValue[r][t][y] == CapitalCost[r][t][y] * NewCapacity[r][t][y] * (1 - (max([int(yy) for yy in YEAR]) - int(y) + 1) / OperationalLife[r][t]), ""
-				# SV3_SalvageValueAtEndOfPeriod3
-				if int(y) + OperationalLife[r][t] - 1 <= max([int(yy) for yy in YEAR]):
-					model += SalvageValue[r][t][y] == 0, ""
-				# SV4_SalvageValueDiscountedToStartYear
-				model += DiscountedSalvageValue[r][t][y] == SalvageValue[r][t][y] * (1 / ((1 + DiscountRate[r]) ** (1 + max([int(yy) for yy in YEAR]) - min([int(yy) for yy in YEAR])))), ""
-	
-	#########        	Operating Costs 		 	#########
-	
-	for r in REGION:
-		for t in TECHNOLOGY:
-			for y in YEAR:
-				# OC1_OperatingCostsVariable
-				model += AnnualVariableOperatingCost[r][t][y] == pulp.lpSum([TotalAnnualTechnologyActivityByMode[r][t][m][y] * VariableCost[r][t][m][y] for m in MODE_OF_OPERATION]), ""
-				# OC2_OperatingCostsFixedAnnual
-				model += AnnualFixedOperatingCost[r][t][y] == TotalCapacityAnnual[r][t][y] * FixedCost[r][t][y], ""
-				# OC3_OperatingCostsTotalAnnual
-				model += OperatingCost[r][t][y] == AnnualFixedOperatingCost[r][t][y] + AnnualVariableOperatingCost[r][t][y], ""
-				# OC4_DiscountedOperatingCostsTotalAnnual
-				model += DiscountedOperatingCost[r][t][y] == OperatingCost[r][t][y] * (1 /((1 + DiscountRate[r]) ** (int(y) - min([int(yy) for yy in YEAR]) + 0.5))), ""
-	
-	#########       	Total Discounted Costs	 	#########
-	
-	for r in REGION:
-		for y in YEAR:
-			for t in TECHNOLOGY:
-				# TDC1_TotalDiscountedCostByTechnology
-				model += TotalDiscountedCostByTechnology[r][t][y] == DiscountedOperatingCost[r][t][y] + DiscountedCapitalInvestment[r][t][y] + DiscountedTechnologyEmissionsPenalty[r][t][y] - DiscountedSalvageValue[r][t][y], ""
-	
-			# TDC2_TotalDiscountedCost
-			model += TotalDiscountedCost[r][y] == pulp.lpSum([TotalDiscountedCostByTechnology[r][t][y] for t in TECHNOLOGY]) + pulp.lpSum([TotalDiscountedStorageCost[r][s][y] for s in STORAGE]), ""
-	
-	#########      		Total Capacity Constraints 	#########
-	
-	for r in REGION:
-		for y in YEAR:
-			for t in TECHNOLOGY:
-				# TCC1_TotalAnnualMaxCapacityConstraint
-				model += TotalCapacityAnnual[r][t][y] <= TotalAnnualMaxCapacity[r][t][y], ""
-				# TCC2_TotalAnnualMinCapacityConstraint
-				if TotalAnnualMinCapacity[r][t][y] > 0:
-					model += TotalCapacityAnnual[r][t][y] >= TotalAnnualMinCapacity[r][t][y], ""
-	
-	#########    		New Capacity Constraints  	#########
-	
-	for r in REGION:
-		for y in YEAR:
-			for t in TECHNOLOGY:
-				# NCC1_TotalAnnualMaxNewCapacityConstraint
-				model += NewCapacity[r][t][y] <= TotalAnnualMaxCapacityInvestment[r][t][y], ""
-				# NCC2_TotalAnnualMinNewCapacityConstraint
-				if TotalAnnualMinCapacityInvestment[r][t][y] > 0:
-					model += NewCapacity[r][t][y] >= TotalAnnualMinCapacityInvestment[r][t][y], ""
-	
-	#########   		Annual Activity Constraints	#########
-	
-	for r in REGION:
-		for t in TECHNOLOGY:
-			for y in YEAR:
-				# AAC1_TotalAnnualTechnologyActivity
-				model += TotalTechnologyAnnualActivity[r][t][y] == pulp.lpSum([RateOfTotalActivity[r][t][l][y] * YearSplit[l][y] for l in TIMESLICE]), ""
-				# AAC2_TotalAnnualTechnologyActivityUpperLimit
-				model += TotalTechnologyAnnualActivity[r][t][y] <= TotalTechnologyAnnualActivityUpperLimit[r][t][y], ""
-				# AAC3_TotalAnnualTechnologyActivityLowerLimit
-				if TotalTechnologyAnnualActivityLowerLimit[r][t][y] > 0:
-					model += TotalTechnologyAnnualActivity[r][t][y] >= TotalTechnologyAnnualActivityLowerLimit[r][t][y], ""
-	
-	#########    		Total Activity Constraints 	#########
-	
-	for r in REGION:
-		for t in TECHNOLOGY:
-			# TAC1_TotalModelHorizonTechnologyActivity
-			model += TotalTechnologyModelPeriodActivity[r][t] == pulp.lpSum([TotalTechnologyAnnualActivity[r][t][y] for y in YEAR]), ""
-			# TAC2_TotalModelHorizonTechnologyActivityUpperLimit
-			if TotalTechnologyModelPeriodActivityUpperLimit[r][t] > 0:
-				model += TotalTechnologyModelPeriodActivity[r][t] <= TotalTechnologyModelPeriodActivityUpperLimit[r][t], ""
-			# TAC3_TotalModelHorizenTechnologyActivityLowerLimit
-			if TotalTechnologyModelPeriodActivityLowerLimit[r][t] > 0:
-				model += TotalTechnologyModelPeriodActivity[r][t] >= TotalTechnologyModelPeriodActivityLowerLimit[r][t], ""
-	
-	#########   		Reserve Margin Constraint	#########
-	
-	for r in REGION:
-		for y in YEAR:
-			# RM1_ReserveMargin_TechnologiesIncluded_In_Activity_Units
-			model += TotalCapacityInReserveMargin[r][y] == pulp.lpSum([TotalCapacityAnnual[r][t][y] * ReserveMarginTagTechnology[r][t][y] * CapacityToActivityUnit[r][t] for t in TECHNOLOGY]), ""
-	
-			for l in TIMESLICE:
-				# RM2_ReserveMargin_FuelsIncluded
-				model += DemandNeedingReserveMargin[r][l][y] == pulp.lpSum([RateOfProduction[r][l][f][y] * ReserveMarginTagFuel[r][f][y] for f in FUEL]), ""
-				# RM3_ReserveMargin_Constraint
-				model += DemandNeedingReserveMargin[r][l][y] <= TotalCapacityInReserveMargin[r][y] * (1/ReserveMargin[r][y]), ""
-	
-	#########   		RE Production Target		#########
-	
-	for r in REGION:
-		for y in YEAR:
-			for t in TECHNOLOGY:
-				for f in FUEL:
-					# RE1_FuelProductionByTechnologyAnnual
-					model += ProductionByTechnologyAnnual[r][t][f][y] == pulp.lpSum([ProductionByTechnology[r][l][t][f][y] for l in TIMESLICE]), ""
-			# RE2_TechIncluded
-			model += TotalREProductionAnnual[r][y] == pulp.lpSum([ProductionByTechnologyAnnual[r][t][f][y] * RETagTechnology[r][t][y] for t in TECHNOLOGY for f in FUEL]), ""
-			# RE3_FuelIncluded
-			model += RETotalProductionOfTargetFuelAnnual[r][y] == pulp.lpSum([RateOfProduction[r][l][f][y] * YearSplit[l][y] * RETagFuel[r][f][y] for l in TIMESLICE for f in FUEL]), ""
-			# RE4_EnergyConstraint
-			model += TotalREProductionAnnual[r][y] >= REMinProductionTarget[r][y] * RETotalProductionOfTargetFuelAnnual[r][y], ""
-	
-			for t in TECHNOLOGY:
-				for f in FUEL:
-					# RE5_FuelUseByTechnologyAnnual
-					model += UseByTechnologyAnnual[r][t][f][y] == pulp.lpSum([RateOfUseByTechnology[r][l][t][f][y] * YearSplit[l][y] for l in TIMESLICE]), ""
-	
-	#########   		Emissions Accounting		#########
-	
-	for r in REGION:
-		for y in YEAR:
-			for t in TECHNOLOGY:
-				for e in EMISSION:
-					for m in MODE_OF_OPERATION:
-						# E1_AnnualEmissionProductionByMode
-						model += AnnualTechnologyEmissionByMode[r][t][e][m][y] == EmissionActivityRatio[r][t][e][m][y] * TotalAnnualTechnologyActivityByMode[r][t][m][y], ""
-					# E2_AnnualEmissionProduction
-					model += AnnualTechnologyEmission[r][t][e][y] == pulp.lpSum([AnnualTechnologyEmissionByMode[r][t][e][m][y] for m in MODE_OF_OPERATION]), ""
-					# E3_EmissionsPenaltyByTechAndEmission
-					model += AnnualTechnologyEmissionPenaltyByEmission[r][t][e][y] == AnnualTechnologyEmission[r][t][e][y] * EmissionsPenalty[r][e][y], ""
-				# E4_EmissionsPenaltyByTechnology
-				model += AnnualTechnologyEmissionsPenalty[r][t][y] == pulp.lpSum([AnnualTechnologyEmissionPenaltyByEmission[r][t][e][y] for e in EMISSION]), ""
-				# E5_DiscountedEmissionsPenaltyByTechnology
-				model += DiscountedTechnologyEmissionsPenalty[r][t][y] == AnnualTechnologyEmissionsPenalty[r][t][y] * (1 / ((1 + DiscountRate[r]) ** (int(y) - min([int(yy) for yy in YEAR]) + 0.5))), ""
-	
-			for e in EMISSION:
-				# E6_EmissionsAccounting1
-				model += AnnualEmissions[r][e][y] == pulp.lpSum([AnnualTechnologyEmission[r][t][e][y] for t in TECHNOLOGY]), ""
-	
-		for e in EMISSION:
-			# E7_EmissionsAccounting2
-			model += pulp.lpSum([AnnualEmissions[r][e][y] for y in YEAR]) == ModelPeriodEmissions[r][e] - ModelPeriodExogenousEmission[r][e], ""
-	
-			for y in YEAR:
-				# E8_AnnualEmissionsLimit
-				model += AnnualEmissions[r][e][y] <= AnnualEmissionLimit[r][e][y] - AnnualExogenousEmission[r][e][y], ""
-			# E9_ModelPeriodEmissionsLimit
-			model += ModelPeriodEmissions[r][e] <= ModelPeriodEmissionLimit[r][e], ""
-	
-	logging.info("{}\tModel is built.".format(dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+    NumberOfNewTechnologyUnits = {str(r): {str(t): {str(y): newVar("NumberOfNewTechnologyUnits", 0, None, 'Integer', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+    NewCapacity = {str(r): {str(t): {str(y): newVar("NewCapacity", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+    AccumulatedNewCapacity = {str(r): {str(t): {str(y): newVar("AccumulatedNewCapacity", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+    TotalCapacityAnnual = {str(r): {str(t): {str(y): newVar("TotalCapacityAnnual", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
 
-	# ------------------------------------------------------------------------------------------------------------------
-	#    SOLVE
-	# ------------------------------------------------------------------------------------------------------------------
-	
-	model.solve()
-	logging.info("{}\tModel is solved.".format(dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+    #########			Activity Variables 			#########
 
-	if str(pulp.LpStatus[model.status]) == "Optimal":
-		logging.info("The optimal solution found a cost value of {}.".format(round(model.objective.value(), 2)))
+    RateOfActivity = {str(r): {str(l): {str(t): {str(m): {str(y): newVar("RateOfActivity", 0, None, 'Continuous', r, l, t, m, y) for y in YEAR} for m in MODE_OF_OPERATION} for t in TECHNOLOGY} for l in TIMESLICE} for r in REGION}
+    RateOfTotalActivity = {str(r): {str(t): {str(l): {str(y): newVar("RateOfTotalActivity", 0, None, 'Continuous', r, t, l, y) for y in YEAR} for l in TIMESLICE} for t in TECHNOLOGY} for r in REGION}
+    TotalTechnologyAnnualActivity = {str(r): {str(t): {str(y): newVar("TotalTechnologyAnnualActivity", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+    TotalAnnualTechnologyActivityByMode = {str(r): {str(t): {str(m): {str(y): newVar("TotalAnnualTechnologyActivityByMode", 0, None, 'Continuous', r, t, m, y) for y in YEAR} for m in MODE_OF_OPERATION} for t in TECHNOLOGY} for r in REGION}
+    TotalTechnologyModelPeriodActivity = {str(r): {str(t): newVar("TotalTechnologyModelPeriodActivity", None, None, 'Continuous', r, t) for t in TECHNOLOGY} for r in REGION}
+    RateOfProductionByTechnologyByMode = {str(r): {str(l): {str(t): {str(m): {str(f): {str(y): newVar("RateOfProductionByTechnologyByMode", 0, None, 'Continuous', r, l, t, m, f, y) for y in YEAR} for f in FUEL} for m in MODE_OF_OPERATION} for t in TECHNOLOGY} for l in TIMESLICE} for r in REGION}
+    RateOfProductionByTechnology = {str(r): {str(l): {str(t): {str(f): {str(y): newVar("RateOfProductionByTechnology", 0, None, 'Continuous', r, l, t, f, y) for y in YEAR} for f in FUEL} for t in TECHNOLOGY} for l in TIMESLICE} for r in REGION}
+    ProductionByTechnology = {str(r): {str(l): {str(t): {str(f): {str(y): newVar("ProductionByTechnology", 0, None, 'Continuous', r, l, t, f, y) for y in YEAR} for f in FUEL} for t in TECHNOLOGY} for l in TIMESLICE} for r in REGION}
+    ProductionByTechnologyAnnual = {str(r): {str(t): {str(f): {str(y): newVar("ProductionByTechnologyAnnual", 0, None, 'Continuous', r, t, f, y) for y in YEAR} for f in FUEL} for t in TECHNOLOGY} for r in REGION}
+    RateOfProduction = {str(r): {str(l): {str(f): {str(y): newVar("RateOfProduction", 0, None, 'Continuous', r, l, f, y) for y in YEAR} for f in FUEL} for l in TIMESLICE} for r in REGION}
+    Production = {str(r): {str(l): {str(f): {str(y): newVar("Production", 0, None, 'Continuous', r, l, f, y) for y in YEAR} for f in FUEL} for l in TIMESLICE} for r in REGION}
+    RateOfUseByTechnologyByMode = {str(r): {str(l): {str(t): {str(m): {str(f): {str(y): newVar("RateOfUseByTechnologyByMode", 0, None, 'Continuous', r, l, t, m, f, y) for y in YEAR} for f in FUEL} for m in MODE_OF_OPERATION} for t in TECHNOLOGY} for l in TIMESLICE} for r in REGION}
+    RateOfUseByTechnology = {str(r): {str(l): {str(t): {str(f): {str(y): newVar("RateOfUseByTechnology", 0, None, 'Continuous', r, l, t, f, y) for y in YEAR} for f in FUEL} for t in TECHNOLOGY} for l in TIMESLICE} for r in REGION}
+    UseByTechnologyAnnual = {str(r): {str(t): {str(f): {str(y): newVar("UseByTechnologyAnnual", 0, None, 'Continuous', r, t, f, y) for y in YEAR} for f in FUEL} for t in TECHNOLOGY} for r in REGION}
+    RateOfUse = {str(r): {str(l): {str(f): {str(y): newVar("RateOfUse", 0, None, 'Continuous', r, l, f, y) for y in YEAR} for f in FUEL} for l in TIMESLICE} for r in REGION}
+    UseByTechnology = {str(r): {str(l): {str(t): {str(f): {str(y): newVar("UseByTechnology", 0, None, 'Continuous', r, l, t, f, y) for y in YEAR} for f in FUEL} for t in TECHNOLOGY} for l in TIMESLICE} for r in REGION}
+    Use = {str(r): {str(l): {str(f): {str(y): newVar("Use", 0, None, 'Continuous', r, l, f, y) for y in YEAR} for f in FUEL} for l in TIMESLICE} for r in REGION}
+    Trade = {str(r): {str(rr): {str(l): {str(f): {str(y): newVar("Trade", None, None, 'Continuous', r, rr, l, f, y) for y in YEAR} for f in FUEL} for l in TIMESLICE} for rr in REGION2} for r in REGION}
+    TradeAnnual = {str(r): {str(rr): {str(f): {str(y): newVar("TradeAnnual", None, None, 'Continuous', r, rr, f, y) for y in YEAR} for f in FUEL} for rr in REGION2} for r in REGION}
+    ProductionAnnual = {str(r): {str(f): {str(y): newVar("ProductionAnnual", 0, None, 'Continuous', r, f, y) for y in YEAR} for f in FUEL} for r in REGION}
+    UseAnnual = {str(r): {str(f): {str(y): newVar("UseAnnual", 0, None, 'Continuous', r, f, y) for y in YEAR} for f in FUEL} for r in REGION}
 
-		# --------------------------------------------------------------------------------------------------------------
-		#    SAVE RESULTS TO DATAFRAME
-		# --------------------------------------------------------------------------------------------------------------
-	
-		# Create dataframe to save results after the model was run the first time
-		if i == 0:
-			res_df = pd.DataFrame(columns=[
-			'SCENARIO',
-			'VAR_NAME',
-			'VAR_VALUE',
-			'REGION',
-			'REGION2',
-			'DAYTYPE',
-			'EMISSION',
-			'FUEL',
-			'DAILYTIMEBRACKET',
-			'SEASON',
-			'TIMESLICE',
-			'MODE_OF_OPERATION',
-			'STORAGE',
-			'TECHNOLOGY',
-			'YEAR',
-			'FLEXIBLEDEMANDTYPE'])
-		
-		res_df = saveResultsTemporary(res_df, model, "Scenario_" + str(i))
-		logging.info("{}\tResults are saved".format(dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-		
-	else:
-		logging.error("{}\tError: Optimisation status for Scenario_{} is: {}".format(
-			dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), pulp.LpStatus[model.status]))
-	
-	del model  # Delete model
+    #########			Costing Variables 			#########
 
-	# ----------------------------------------------------------------------------------------------------------------------
-	#    MONTE CARLO SIMULATION - START
-	# ----------------------------------------------------------------------------------------------------------------------
+    CapitalInvestment = {str(r): {str(t): {str(y): newVar("CapitalInvestment", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+    DiscountedCapitalInvestment = {str(r): {str(t): {str(y): newVar("DiscountedCapitalInvestment", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+    SalvageValue = {str(r): {str(t): {str(y): newVar("SalvageValue", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+    DiscountedSalvageValue = {str(r): {str(t): {str(y): newVar("DiscountedSalvageValue", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+    OperatingCost = {str(r): {str(t): {str(y): newVar("OperatingCost", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+    DiscountedOperatingCost = {str(r): {str(t): {str(y): newVar("DiscountedOperatingCost", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+    AnnualVariableOperatingCost = {str(r): {str(t): {str(y): newVar("AnnualVariableOperatingCost", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+    AnnualFixedOperatingCost = {str(r): {str(t): {str(y): newVar("AnnualFixedOperatingCost", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+    TotalDiscountedCostByTechnology = {str(r): {str(t): {str(y): newVar("TotalDiscountedCostByTechnology", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+    TotalDiscountedCost = {str(r): {str(y): newVar("TotalDiscountedCost", 0, None, 'Continuous', r, y) for y in YEAR} for r in REGION}
+    ModelPeriodCostByRegion = {str(r): newVar("ModelPeriodCostByRegion", 0, None, 'Continuous', r) for r in REGION}
 
-	i += 1
-	
-	# Note: Monte Carlo Simulation is applied to all selected parameters (mcs_parameters).
-	# For each parameter, the mcs_parameters is only applied to parameter values that are not equal to default values, i.e. values that were explicitly set.
+    #########			Reserve Margin				#########
 
-	#########			Reference parameters and data     #########
-	
-	if (len(mcs_parameters) >= 1) and (mcs_num > 0) and (i == 1):
-	
-		# Copy of previous paramteres. This is used to store already generated parameters with data to enhance the performance in the mcs_parameters loops
-		DiscountRate_ref = DiscountRate
-		DaySplit_ref = DaySplit
-		Conversionls_ref = Conversionls
-		Conversionld_ref = Conversionld
-		Conversionlh_ref = Conversionlh
-		DaysInDayType_ref = DaysInDayType
-		TradeRoute_ref = TradeRoute
-		DepreciationMethod_ref = DepreciationMethod
-		SpecifiedAnnualDemand_ref = SpecifiedAnnualDemand
-		SpecifiedDemandProfile_ref = SpecifiedDemandProfile
-		AccumulatedAnnualDemand_ref = AccumulatedAnnualDemand
-		CapacityToActivityUnit_ref = CapacityToActivityUnit
-		TechWithCapacityNeededToMeetPeakTS_ref = TechWithCapacityNeededToMeetPeakTS
-		CapacityFactor_ref = CapacityFactor
-		AvailabilityFactor_ref = AvailabilityFactor
-		OperationalLife_ref = OperationalLife
-		ResidualCapacity_ref = ResidualCapacity
-		InputActivityRatio_ref = InputActivityRatio
-		OutputActivityRatio_ref = OutputActivityRatio
-		CapitalCost_ref = CapitalCost
-		VariableCost_ref = VariableCost
-		FixedCost_ref = FixedCost
-		TechnologyToStorage_ref = TechnologyToStorage
-		TechnologyFromStorage_ref = TechnologyFromStorage
-		StorageLevelStart_ref = StorageLevelStart
-		StorageMaxChargeRate_ref = StorageMaxChargeRate
-		StorageMaxDischargeRate_ref = StorageMaxDischargeRate
-		MinStorageCharge_ref = MinStorageCharge
-		OperationalLifeStorage_ref = OperationalLifeStorage
-		CapitalCostStorage_ref = CapitalCostStorage
-		ResidualStorageCapacity_ref = ResidualStorageCapacity
-		CapacityOfOneTechnologyUnit_ref = CapacityOfOneTechnologyUnit
-		TotalAnnualMaxCapacity_ref = TotalAnnualMaxCapacity
-		TotalAnnualMinCapacity_ref = TotalAnnualMinCapacity
-		TotalAnnualMaxCapacityInvestment_ref = TotalAnnualMaxCapacityInvestment
-		TotalAnnualMinCapacityInvestment_ref = TotalAnnualMinCapacityInvestment
-		TotalTechnologyAnnualActivityUpperLimit_ref = TotalTechnologyAnnualActivityUpperLimit
-		TotalTechnologyAnnualActivityLowerLimit_ref = TotalTechnologyAnnualActivityLowerLimit
-		TotalTechnologyModelPeriodActivityUpperLimit_ref = TotalTechnologyModelPeriodActivityUpperLimit
-		TotalTechnologyModelPeriodActivityLowerLimit_ref = TotalTechnologyModelPeriodActivityLowerLimit
-		ReserveMarginTagTechnology_ref = ReserveMarginTagTechnology
-		ReserveMarginTagFuel_ref = ReserveMarginTagFuel
-		ReserveMargin_ref = ReserveMargin
-		RETagTechnology_ref = RETagTechnology
-		RETagFuel_ref = RETagFuel
-		REMinProductionTarget_ref = REMinProductionTarget
-		EmissionActivityRatio_ref = EmissionActivityRatio
-		EmissionsPenalty_ref = EmissionsPenalty
-		AnnualExogenousEmission_ref = AnnualExogenousEmission
-		AnnualEmissionLimit_ref = AnnualEmissionLimit
-		ModelPeriodExogenousEmission_ref = ModelPeriodExogenousEmission
-		ModelPeriodEmissionLimit_ref = ModelPeriodEmissionLimit
+    TotalCapacityInReserveMargin = {str(r): {str(y): newVar("TotalCapacityInReserveMargin", 0, None, 'Continuous', r, y) for y in YEAR} for r in REGION}
+    DemandNeedingReserveMargin = {str(r): {str(l): {str(y): newVar("DemandNeedingReserveMargin", 0, None, 'Continuous', r, l, y) for y in YEAR} for l in TIMESLICE} for r in REGION}
 
-	#########			Generate random data and overwrite selected parameters for next MCS run     	#########
+    #########			RE Gen Target				#########
 
-	########			Global 								#########
+    TotalREProductionAnnual = {str(r): {str(y): newVar("TotalREProductionAnnual", None, None, 'Continuous', r, y) for y in YEAR} for r in REGION}
+    RETotalProductionOfTargetFuelAnnual = {str(r): {str(y): newVar("RETotalProductionOfTargetFuelAnnual", None, None, 'Continuous', r, y) for y in YEAR} for r in REGION}
 
-	if ("DiscountRate" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			DiscountRate_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "DiscountRate") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			DiscountRate_mcs_specified = tuple([(str(r)) for r in mcs_df[mcs_df['PARAM'] == "DiscountRate"].REGION])
-		
-		DiscountRate = {str(r): generateRandomData(DiscountRate_ref[r], mcs_df[(mcs_df['PARAM'] == "DiscountRate") & (mcs_df['REGION'] == r)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r)) in DiscountRate_mcs_specified else generateRandomData(DiscountRate_ref[r], DiscountRate_mcs_default_list) for r in REGION}
+    #########			Emissions					#########
+
+    AnnualTechnologyEmissionByMode = {str(r): {str(t): {str(e): {str(m): {str(y): newVar("AnnualTechnologyEmissionByMode", 0, None, 'Continuous', r, t, e, m, y) for y in YEAR} for m in MODE_OF_OPERATION} for e in EMISSION} for t in TECHNOLOGY} for r in REGION}
+    AnnualTechnologyEmission = {str(r): {str(t): {str(e): {str(y): newVar("AnnualTechnologyEmission", 0, None, 'Continuous', r, t, e, y) for y in YEAR} for e in EMISSION} for t in TECHNOLOGY} for r in REGION}
+    AnnualTechnologyEmissionPenaltyByEmission = {str(r): {str(t): {str(e): {str(y): newVar("AnnualTechnologyEmissionPenaltyByEmission", 0, None, 'Continuous', r, t, e, y) for y in YEAR} for e in EMISSION} for t in TECHNOLOGY} for r in REGION}
+    AnnualTechnologyEmissionsPenalty = {str(r): {str(t): {str(y): newVar("AnnualTechnologyEmissionsPenalty", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+    DiscountedTechnologyEmissionsPenalty = {str(r): {str(t): {str(y): newVar("DiscountedTechnologyEmissionsPenalty", 0, None, 'Continuous', r, t, y) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+    AnnualEmissions = {str(r): {str(e): {str(y): newVar("AnnualEmissions", 0, None, 'Continuous', r, e, y) for y in YEAR} for e in EMISSION} for r in REGION}
+    ModelPeriodEmissions = {str(r): {str(e): newVar("ModelPeriodEmissions", 0, None, 'Continuous', r, e) for e in EMISSION} for r in REGION}
+
+    logging.info("{}\tVariables are created".format(dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+    # ------------------------------------------------------------------------------------------------------------------
+    #    OBJECTIVE FUNCTION
+    # ------------------------------------------------------------------------------------------------------------------
+
+    cost = pulp.LpVariable("cost", cat='Continuous')
+    model += cost, "Objective"
+    model += cost == pulp.lpSum([TotalDiscountedCost[r][y] for r in REGION for y in YEAR]), "Cost_function"
+
+    # ------------------------------------------------------------------------------------------------------------------
+    #    CONSTRAINTS
+    # ------------------------------------------------------------------------------------------------------------------
+
+    for r in REGION:
+        for l in TIMESLICE:
+            for f in FUEL:
+                for y in YEAR:
+                    # EQ_SpecifiedDemand
+                    model += RateOfDemand[r][l][f][y] == SpecifiedAnnualDemand[r][f][y] * SpecifiedDemandProfile[r][f][l][y] / YearSplit[l][y], ""
+
+    #########			Capacity Adequacy A	     	#########
+
+    for r in REGION:
+        for t in TECHNOLOGY:
+            for y in YEAR:
+                # CAa1_TotalNewCapacity
+                model += AccumulatedNewCapacity[r][t][y] == pulp.lpSum([NewCapacity[r][t][yy] for yy in YEAR if (int(y) - int(yy) < OperationalLife[r][t]) and (int(y) - int(yy) >= 0)]), ""
+                # CAa2_TotalAnnualCapacity
+                model += TotalCapacityAnnual[r][t][y] == AccumulatedNewCapacity[r][t][y] + ResidualCapacity[r][t][y], ""
+
+                for l in TIMESLICE:
+                    # CAa3_TotalActivityOfEachTechnology
+                    model += RateOfTotalActivity[r][t][l][y] == pulp.lpSum([RateOfActivity[r][l][t][m][y] for m in MODE_OF_OPERATION]), ""
+                    # CAa4_Constraint_Capacity
+                    model += RateOfTotalActivity[r][t][l][y] <= TotalCapacityAnnual[r][t][y] * CapacityFactor[r][t][l][y] * CapacityToActivityUnit[r][t], ""
+
+                if CapacityOfOneTechnologyUnit[r][t][y] != 0:
+                    # CAa5_TotalNewCapacity
+                    model += NewCapacity[r][t][y] == CapacityOfOneTechnologyUnit[r][t][y] * NumberOfNewTechnologyUnits[r][t][y], ""
+
+    #########			Capacity Adequacy B		 	#########
+
+    for r in REGION:
+        for t in TECHNOLOGY:
+            for y in YEAR:
+                # CAb1_PlannedMaintenance
+                model += pulp.lpSum([RateOfTotalActivity[r][t][l][y] * YearSplit[l][y] for l in TIMESLICE]) <= pulp.lpSum([TotalCapacityAnnual[r][t][y] * CapacityFactor[r][t][l][y] * YearSplit[l][y] for l in TIMESLICE]) * AvailabilityFactor[r][t][y] * CapacityToActivityUnit[r][t], ""
+
+    #########			Energy Balance A    	 	#########
+
+    for r in REGION:
+        for l in TIMESLICE:
+            for f in FUEL:
+                for y in YEAR:
+                    for t in TECHNOLOGY:
+                        for m in MODE_OF_OPERATION:
+                            # EBa1_RateOfFuelProduction1
+                            if OutputActivityRatio[r][t][f][m][y] != 0:
+                                model += RateOfProductionByTechnologyByMode[r][l][t][m][f][y] == RateOfActivity[r][l][t][m][y] * OutputActivityRatio[r][t][f][m][y], ""
+                            else:
+                                model += RateOfProductionByTechnologyByMode[r][l][t][m][f][y] == 0, ""
+                        # EBa2_RateOfFuelProduction2
+                        model += RateOfProductionByTechnology[r][l][t][f][y] == pulp.lpSum([RateOfProductionByTechnologyByMode[r][l][t][m][f][y] for m in MODE_OF_OPERATION if OutputActivityRatio[r][t][f][m][y] != 0]), ""
+                    # EBa3_RateOfFuelProduction3
+                    model += RateOfProduction[r][l][f][y] == pulp.lpSum([RateOfProductionByTechnology[r][l][t][f][y] for t in TECHNOLOGY]), ""
+
+                    for t in TECHNOLOGY:
+                        for m in MODE_OF_OPERATION:
+                            # EBa4_RateOfFuelUse1
+                            if InputActivityRatio[r][t][f][m][y] != 0:
+                                model += RateOfUseByTechnologyByMode[r][l][t][m][f][y] == RateOfActivity[r][l][t][m][y] * InputActivityRatio[r][t][f][m][y], ""
+                        # EBa5_RateOfFuelUse2
+                        model += RateOfUseByTechnology[r][l][t][f][y] == pulp.lpSum([RateOfUseByTechnologyByMode[r][l][t][m][f][y] for m in MODE_OF_OPERATION if InputActivityRatio[r][t][f][m][y] != 0]), ""
+                    # EBa6_RateOfFuelUse3
+                    model += RateOfUse[r][l][f][y] == pulp.lpSum([RateOfUseByTechnology[r][l][t][f][y] for t in TECHNOLOGY]), ""
+                    # EBa7_EnergyBalanceEachTS1
+                    model += Production[r][l][f][y] == RateOfProduction[r][l][f][y] * YearSplit[l][y], ""
+                    # EBa8_EnergyBalanceEachTS2
+                    model += Use[r][l][f][y] == RateOfUse[r][l][f][y] * YearSplit[l][y], ""
+                    # EBa9_EnergyBalanceEachTS3
+                    model += Demand[r][l][f][y] == RateOfDemand[r][l][f][y] * YearSplit[l][y], ""
+
+                    for rr in REGION2:
+                        # EBa10_EnergyBalanceEachTS4
+                        model += Trade[r][rr][l][f][y] == -Trade[rr][r][l][f][y], ""
+                    # EBa11_EnergyBalanceEachTS5
+                    model += Production[r][l][f][y] >= Demand[r][l][f][y] + Use[r][l][f][y] + pulp.lpSum([Trade[r][rr][l][f][y] * TradeRoute[r][rr][f][y] for rr in REGION2]), ""
+
+    #########        	Energy Balance B		 	#########
+
+    for r in REGION:
+        for f in FUEL:
+            for y in YEAR:
+                # EBb1_EnergyBalanceEachYear1
+                model += ProductionAnnual[r][f][y] == pulp.lpSum([Production[r][l][f][y] for l in TIMESLICE]), ""
+                # EBb2_EnergyBalanceEachYear2
+                model += UseAnnual[r][f][y] == pulp.lpSum([Use[r][l][f][y] for l in TIMESLICE]), ""
+
+                for rr in REGION2:
+                    # EBb3_EnergyBalanceEachYear3
+                    model += TradeAnnual[r][rr][f][y] == pulp.lpSum([Trade[r][rr][l][f][y] for l in TIMESLICE]), ""
+                # EBb4_EnergyBalanceEachYear4
+                model += ProductionAnnual[r][f][y] >= UseAnnual[r][f][y] + pulp.lpSum([TradeAnnual[r][rr][f][y] * TradeRoute[r][rr][f][y] for rr in REGION2]) + AccumulatedAnnualDemand[r][f][y], ""
+
+    #########			Accounting Technology Production/Use	#########
+
+    for r in REGION:
+        for t in TECHNOLOGY:
+            for y in YEAR:
+                for l in TIMESLICE:
+                    for f in FUEL:
+                        # Acc1_FuelProductionByTechnology
+                        model += ProductionByTechnology[r][l][t][f][y] == RateOfProductionByTechnology[r][l][t][f][y] * YearSplit[l][y], ""
+                        # Acc2_FuelUseByTechnology
+                        model += UseByTechnology[r][l][t][f][y] == RateOfUseByTechnology[r][l][t][f][y] * YearSplit[l][y], ""
+
+                for m in MODE_OF_OPERATION:
+                    # Acc3_AverageAnnualRateOfActivity
+                    model += TotalAnnualTechnologyActivityByMode[r][t][m][y] == pulp.lpSum([RateOfActivity[r][l][t][m][y] * YearSplit[l][y] for l in TIMESLICE]), ""
+        # Acc4_ModelPeriodCostByRegion
+        model += ModelPeriodCostByRegion[r] == pulp.lpSum([TotalDiscountedCost[r][y] for y in YEAR]), ""
+
+    #########			Storage Equations			#########
+
+    for r in REGION:
+        for s in STORAGE:
+            for y in YEAR:
+                for ls in SEASON:
+                    for ld in DAYTYPE:
+                        for lh in DAILYTIMEBRACKET:
+                            # S1_RateOfStorageCharge
+                            model += RateOfStorageCharge[r][s][ls][ld][lh][y] == pulp.lpSum([RateOfActivity[r][l][t][m][y] * TechnologyToStorage[r][t][s][m] * Conversionls[l][ls] * Conversionld[l][ld] * Conversionlh[l][lh] for t in TECHNOLOGY for m in MODE_OF_OPERATION for l in TIMESLICE if TechnologyToStorage[r][t][s][m] > 0]), ""
+                            # S2_RateOfStorageDischarge
+                            model += RateOfStorageDischarge[r][s][ls][ld][lh][y] == pulp.lpSum([RateOfActivity[r][l][t][m][y] * TechnologyFromStorage[r][t][s][m] * Conversionls[l][ls] * Conversionld[l][ld] * Conversionlh[l][lh] for t in TECHNOLOGY for m in MODE_OF_OPERATION for l in TIMESLICE if TechnologyFromStorage[r][t][s][m] > 0]), ""
+                            # S3_NetChargeWithinYear
+                            model += NetChargeWithinYear[r][s][ls][ld][lh][y] == pulp.lpSum([(RateOfStorageCharge[r][s][ls][ld][lh][y] - RateOfStorageDischarge[r][s][ls][ld][lh][y]) * YearSplit[l][y] * Conversionls[l][ls] * Conversionld[l][ld] * Conversionlh[l][lh] for l in TIMESLICE if (Conversionls[l][ls] > 0) and (Conversionld[l][ld] > 0) and (Conversionlh[l][lh] > 0)]), ""
+                            # S4_NetChargeWithinDay
+                            model += NetChargeWithinDay[r][s][ls][ld][lh][y] == (RateOfStorageCharge[r][s][ls][ld][lh][y] - RateOfStorageDischarge[r][s][ls][ld][lh][y]) * DaySplit[lh][y], ""
+
+                # S5_and_S6_StorageLevelYearStart
+                if int(y) == min([int(yy) for yy in YEAR]):
+                    model += StorageLevelYearStart[r][s][y] == StorageLevelStart[r][s], ""
+                else:
+                    model += StorageLevelYearStart[r][s][y] == StorageLevelYearStart[r][s][str(int(y)-1)] + pulp.lpSum([NetChargeWithinYear[r][s][ls][ld][lh][str(int(y)-1)] for ls in SEASON for ld in DAYTYPE for lh in DAILYTIMEBRACKET]), ""
+                # S7_and_S8_StorageLevelYearFinish
+                if int(y) < max([int(yy) for yy in YEAR]):
+                    model += StorageLevelYearFinish[r][s][y] == StorageLevelYearStart[r][s][str(int(y) + 1)], ""
+                else:
+                    model += StorageLevelYearFinish[r][s][y] == StorageLevelYearStart[r][s][y] + pulp.lpSum([NetChargeWithinYear[r][s][ls][ld][lh][y] for ls in SEASON for ld in DAYTYPE for lh in DAILYTIMEBRACKET]), ""
+
+                for ls in SEASON:
+                    # S9_and_S10_StorageLevelSeasonStart
+                    if int(ls) == min([int(lsls) for lsls in SEASON]):
+                        model += StorageLevelSeasonStart[r][s][ls][y] == StorageLevelYearStart[r][s][y], ""
+                    else:
+                        model += StorageLevelSeasonStart[r][s][ls][y] == StorageLevelSeasonStart[r][s][str(int(ls)-1)][y] + pulp.lpSum([NetChargeWithinYear[r][s][str(int(ls)-1)][ld][lh][y] for ld in DAYTYPE for lh in DAILYTIMEBRACKET]), ""
+
+                    for ld in DAYTYPE:
+                        # S11_and_S12_StorageLevelDayTypeStart
+                        if int(ld) == min([int(ldld) for ldld in DAYTYPE]):
+                            model += StorageLevelDayTypeStart[r][s][ls][ld][y] == StorageLevelSeasonStart[r][s][ls][y], ""
+                        else:
+                            model += StorageLevelDayTypeStart[r][s][ls][ld][y] == StorageLevelDayTypeStart[r][s][ls][str(int(ld)-1)][y] + pulp.lpSum([NetChargeWithinDay[r][s][ls][str(int(ld)-1)][lh][y] * DaysInDayType[ls][str(int(ld)-1)][y] for lh in DAILYTIMEBRACKET]), ""
+                        # S13_and_S14_and_S15_StorageLevelDayTypeFinish
+                        if (int(ld) == max([int(ldld) for ldld in DAYTYPE])) and (int(ls) == max([int(lsls) for lsls in SEASON])):
+                            model += StorageLevelDayTypeFinish[r][s][ls][ld][y] == StorageLevelYearFinish[r][s][y], ""
+                        elif int(ld) == max([int(ldld) for ldld in DAYTYPE]):
+                            model += StorageLevelDayTypeFinish[r][s][ls][ld][y] == StorageLevelSeasonStart[r][s][str(int(ls)+1)][y], ""
+                        else:
+                            model += StorageLevelDayTypeFinish[r][s][ls][ld][y] == StorageLevelDayTypeFinish[r][s][ls][str(int(ld)+1)][y] - pulp.lpSum([NetChargeWithinDay[r][s][ls][str(int(ld)+1)][lh][y] * DaysInDayType[ls][str(int(ld)+1)][y] for lh in DAILYTIMEBRACKET]), ""
+
+    ##########			Storage Constraints			#########
+
+    for r in REGION:
+        for s in STORAGE:
+            for y in YEAR:
+                for ls in SEASON:
+                    for ld in DAYTYPE:
+                        for lh in DAILYTIMEBRACKET:
+                            # SC1_LowerLimit_BeginningOfDailyTimeBracketOfFirstInstanceOfDayTypeInFirstWeekConstraint
+                            model += (StorageLevelDayTypeStart[r][s][ls][ld][y] + pulp.lpSum([NetChargeWithinDay[r][s][ls][ld][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh)-int(lhlh) > 0])) - StorageLowerLimit[r][s][y] >= 0, ""
+                            # SC1_UpperLimit_BeginningOfDailyTimeBracketOfFirstInstanceOfDayTypeInFirstWeekConstraint
+                            model += (StorageLevelDayTypeStart[r][s][ls][ld][y] + pulp.lpSum([NetChargeWithinDay[r][s][ls][ld][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh)-int(lhlh) > 0])) - StorageUpperLimit[r][s][y] <= 0, ""
+                            # SC2_LowerLimit_EndOfDailyTimeBracketOfLastInstanceOfDayTypeInFirstWeekConstraint
+                            if int(ld) > min([int(ldld) for ldld in DAYTYPE]):
+                                model += (StorageLevelDayTypeStart[r][s][ls][ld][y] - pulp.lpSum([NetChargeWithinDay[r][s][ls][str(int(ld)-1)][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh)-int(lhlh) < 0])) - StorageLowerLimit[r][s][y] >= 0, ""
+                            # SC2_LowerLimit_EndOfDailyTimeBracketOfLastInstanceOfDayTypeInFirstWeekConstraint
+                            if int(ld) > min([int(ldld) for ldld in DAYTYPE]):
+                                model += (StorageLevelDayTypeStart[r][s][ls][ld][y] - pulp.lpSum([NetChargeWithinDay[r][s][ls][str(int(ld)-1)][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh) - int(lhlh) < 0])) - StorageUpperLimit[r][s][y] <= 0, ""
+                            # SC3_LowerLimit_EndOfDailyTimeBracketOfLastInstanceOfDayTypeInLastWeekConstraint
+                            model += (StorageLevelDayTypeFinish[r][s][ls][ld][y] - pulp.lpSum([NetChargeWithinDay[r][s][ls][ld][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh) - int(lhlh) < 0])) - StorageLowerLimit[r][s][y] >= 0, ""
+                            # SC3_UpperLimit_EndOfDailyTimeBracketOfLastInstanceOfDayTypeInLastWeekConstraint
+                            model += (StorageLevelDayTypeFinish[r][s][ls][ld][y] - pulp.lpSum([NetChargeWithinDay[r][s][ls][ld][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh) - int(lhlh) < 0])) - StorageUpperLimit[r][s][y] <= 0, ""
+                            # SC4_LowerLimit_BeginningOfDailyTimeBracketOfFirstInstanceOfDayTypeInLastWeekConstraint
+                            if int(ld) > min([int(ldld) for ldld in DAYTYPE]):
+                                model += (StorageLevelDayTypeFinish[r][s][ls][str(int(ld)-1)][y] + pulp.lpSum([NetChargeWithinDay[r][s][ls][ld][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh) - int(lhlh) > 0])) - StorageLowerLimit[r][s][y] >= 0, ""
+                            # SC4_UpperLimit_BeginningOfDailyTimeBracketOfFirstInstanceOfDayTypeInLastWeekConstraint
+                            if int(ld) > min([int(ldld) for ldld in DAYTYPE]):
+                                model += (StorageLevelDayTypeFinish[r][s][ls][str(int(ld)-1)][y] + pulp.lpSum([NetChargeWithinDay[r][s][ls][ld][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh) - int(lhlh) > 0])) - StorageUpperLimit[r][s][y] <= 0, ""
+                            # SC5_MaxChargeConstraint
+                            model += RateOfStorageCharge[r][s][ls][ld][lh][y] <= StorageMaxChargeRate[r][s], ""
+                            # SC6_MaxDischargeConstraint
+                            model += RateOfStorageDischarge[r][s][ls][ld][lh][y] <= StorageMaxDischargeRate[r][s], ""
+
+    #########			Storage Investments			#########
+
+    for r in REGION:
+        for s in STORAGE:
+            for y in YEAR:
+                # SI1_StorageUpperLimit
+                model += StorageUpperLimit[r][s][y] == AccumulatedNewStorageCapacity[r][s][y] + ResidualStorageCapacity[r][s][y], ""
+                # SI2_StorageLowerLimit
+                model += StorageLowerLimit[r][s][y] == MinStorageCharge[r][s][y] * StorageUpperLimit[r][s][y], ""
+                # SI3_TotalNewStorage
+                model += AccumulatedNewStorageCapacity[r][s][y] == pulp.lpSum([NewStorageCapacity[r][s][yy] for yy in YEAR if (int(y) - int(yy) < OperationalLifeStorage[r][s]) and (int(y)-int(yy) >= 0)]), ""
+                # SI4_UndiscountedCapitalInvestmentStorage
+                model += CapitalInvestmentStorage[r][s][y] == CapitalCostStorage[r][s][y] * NewStorageCapacity[r][s][y], ""
+                # SI5_DiscountingCapitalInvestmentStorage
+                model += DiscountedCapitalInvestmentStorage[r][s][y] == CapitalInvestmentStorage[r][s][y] * (1/ ((1+DiscountRate[r])**(int(y) - min([int(yy) for yy in YEAR])))), ""
+                # SI6_SalvageValueStorageAtEndOfPeriod1
+                if int(y) + OperationalLifeStorage[r][s] - 1 <= max([int(yy) for yy in YEAR]):
+                    model += SalvageValueStorage[r][s][y] == 0, ""
+                # SI7_SalvageValueStorageAtEndOfPeriod2
+                if ((DepreciationMethod[r] == 1) and (int(y)+OperationalLifeStorage[r][s]-1 > max([int(yy) for yy in YEAR])) and (DiscountRate[r] == 0)) or ((DepreciationMethod[r] == 2) and (int(y)+OperationalLifeStorage[r][s]-1 > max([int(yy) for yy in YEAR]))):
+                    model += SalvageValueStorage[r][s][y] == CapitalInvestmentStorage[r][s][y] * (1-(max([int(yy) for yy in YEAR])-int(y)+1))/OperationalLifeStorage[r][s], ""
+                # SI8_SalvageValueStorageAtEndOfPeriod3
+                if (DepreciationMethod[r] == 1) and (int(y)+OperationalLifeStorage[r][s]-1 > max([int(yy) for yy in YEAR])) and (DiscountRate[r] > 0):
+                    model += SalvageValueStorage[r][s][y] == CapitalInvestmentStorage[r][s][y] * (1-(((1+DiscountRate[r])**(max([int(yy) for yy in YEAR]) - int(y)+1)-1)/((1+DiscountRate[r])**OperationalLifeStorage[r][s]-1))), ""
+                # SI9_SalvageValueStorageDiscountedToStartYear
+                model += DiscountedSalvageValueStorage[r][s][y] == SalvageValueStorage[r][s][y] * (1 /((1+DiscountRate[r])**(max([int(yy) for yy in YEAR])-min([int(yy) for yy in YEAR])+1))), ""
+                # SI10_TotalDiscountedCostByStorage
+                model += TotalDiscountedStorageCost[r][s][y] == DiscountedCapitalInvestmentStorage[r][s][y]-DiscountedSalvageValueStorage[r][s][y], ""
+
+    #########			Capital Costs 		     	#########
+
+    for r in REGION:
+        for t in TECHNOLOGY:
+            for y in YEAR:
+                # CC1_UndiscountedCapitalInvestment
+                model += CapitalInvestment[r][t][y] == CapitalCost[r][t][y] * NewCapacity[r][t][y],  ""
+                # CC2_DiscountingCapitalInvestment
+                model += DiscountedCapitalInvestment[r][t][y] == CapitalInvestment[r][t][y] * (1/((1 + DiscountRate[r]) ** (int(y) - min([int(yy) for yy in YEAR])))), ""
+
+    #########           Salvage Value            	#########
+
+    for r in REGION:
+        for y in YEAR:
+            for t in TECHNOLOGY:
+                # SV1_SalvageValueAtEndOfPeriod1
+                if (DepreciationMethod[r] == 1) and (int(y) + OperationalLife[r][t] - 1 > max([int(yy) for yy in YEAR])) and (DiscountRate[r] > 0):
+                    model += SalvageValue[r][t][y] == CapitalCost[r][t][y] * NewCapacity[r][t][y] * (1 - (((1 + DiscountRate[r]) ** (max([int(yy) for yy in YEAR]) - int(y) + 1) - 1) / ((1 + DiscountRate[r]) ** OperationalLife[r][t] - 1))), ""
+                # SV2_SalvageValueAtEndOfPeriod2
+                if ((DepreciationMethod[r] == 1) and (int(y) + OperationalLife[r][t] - 1 > max([int(yy) for yy in YEAR])) and (DiscountRate[r] == 0)) or ((DepreciationMethod[r] == 2) and (int(y) + OperationalLife[r][t] - 1 > max([int(yy) for yy in YEAR]))):
+                    model += SalvageValue[r][t][y] == CapitalCost[r][t][y] * NewCapacity[r][t][y] * (1 - (max([int(yy) for yy in YEAR]) - int(y) + 1) / OperationalLife[r][t]), ""
+                # SV3_SalvageValueAtEndOfPeriod3
+                if int(y) + OperationalLife[r][t] - 1 <= max([int(yy) for yy in YEAR]):
+                    model += SalvageValue[r][t][y] == 0, ""
+                # SV4_SalvageValueDiscountedToStartYear
+                model += DiscountedSalvageValue[r][t][y] == SalvageValue[r][t][y] * (1 / ((1 + DiscountRate[r]) ** (1 + max([int(yy) for yy in YEAR]) - min([int(yy) for yy in YEAR])))), ""
+
+    #########        	Operating Costs 		 	#########
+
+    for r in REGION:
+        for t in TECHNOLOGY:
+            for y in YEAR:
+                # OC1_OperatingCostsVariable
+                model += AnnualVariableOperatingCost[r][t][y] == pulp.lpSum([TotalAnnualTechnologyActivityByMode[r][t][m][y] * VariableCost[r][t][m][y] for m in MODE_OF_OPERATION]), ""
+                # OC2_OperatingCostsFixedAnnual
+                model += AnnualFixedOperatingCost[r][t][y] == TotalCapacityAnnual[r][t][y] * FixedCost[r][t][y], ""
+                # OC3_OperatingCostsTotalAnnual
+                model += OperatingCost[r][t][y] == AnnualFixedOperatingCost[r][t][y] + AnnualVariableOperatingCost[r][t][y], ""
+                # OC4_DiscountedOperatingCostsTotalAnnual
+                model += DiscountedOperatingCost[r][t][y] == OperatingCost[r][t][y] * (1 /((1 + DiscountRate[r]) ** (int(y) - min([int(yy) for yy in YEAR]) + 0.5))), ""
+
+    #########       	Total Discounted Costs	 	#########
+
+    for r in REGION:
+        for y in YEAR:
+            for t in TECHNOLOGY:
+                # TDC1_TotalDiscountedCostByTechnology
+                model += TotalDiscountedCostByTechnology[r][t][y] == DiscountedOperatingCost[r][t][y] + DiscountedCapitalInvestment[r][t][y] + DiscountedTechnologyEmissionsPenalty[r][t][y] - DiscountedSalvageValue[r][t][y], ""
+
+            # TDC2_TotalDiscountedCost
+            model += TotalDiscountedCost[r][y] == pulp.lpSum([TotalDiscountedCostByTechnology[r][t][y] for t in TECHNOLOGY]) + pulp.lpSum([TotalDiscountedStorageCost[r][s][y] for s in STORAGE]), ""
+
+    #########      		Total Capacity Constraints 	#########
+
+    for r in REGION:
+        for y in YEAR:
+            for t in TECHNOLOGY:
+                # TCC1_TotalAnnualMaxCapacityConstraint
+                model += TotalCapacityAnnual[r][t][y] <= TotalAnnualMaxCapacity[r][t][y], ""
+                # TCC2_TotalAnnualMinCapacityConstraint
+                if TotalAnnualMinCapacity[r][t][y] > 0:
+                    model += TotalCapacityAnnual[r][t][y] >= TotalAnnualMinCapacity[r][t][y], ""
+
+    #########    		New Capacity Constraints  	#########
+
+    for r in REGION:
+        for y in YEAR:
+            for t in TECHNOLOGY:
+                # NCC1_TotalAnnualMaxNewCapacityConstraint
+                model += NewCapacity[r][t][y] <= TotalAnnualMaxCapacityInvestment[r][t][y], ""
+                # NCC2_TotalAnnualMinNewCapacityConstraint
+                if TotalAnnualMinCapacityInvestment[r][t][y] > 0:
+                    model += NewCapacity[r][t][y] >= TotalAnnualMinCapacityInvestment[r][t][y], ""
+
+    #########   		Annual Activity Constraints	#########
+
+    for r in REGION:
+        for t in TECHNOLOGY:
+            for y in YEAR:
+                # AAC1_TotalAnnualTechnologyActivity
+                model += TotalTechnologyAnnualActivity[r][t][y] == pulp.lpSum([RateOfTotalActivity[r][t][l][y] * YearSplit[l][y] for l in TIMESLICE]), ""
+                # AAC2_TotalAnnualTechnologyActivityUpperLimit
+                model += TotalTechnologyAnnualActivity[r][t][y] <= TotalTechnologyAnnualActivityUpperLimit[r][t][y], ""
+                # AAC3_TotalAnnualTechnologyActivityLowerLimit
+                if TotalTechnologyAnnualActivityLowerLimit[r][t][y] > 0:
+                    model += TotalTechnologyAnnualActivity[r][t][y] >= TotalTechnologyAnnualActivityLowerLimit[r][t][y], ""
+
+    #########    		Total Activity Constraints 	#########
+
+    for r in REGION:
+        for t in TECHNOLOGY:
+            # TAC1_TotalModelHorizonTechnologyActivity
+            model += TotalTechnologyModelPeriodActivity[r][t] == pulp.lpSum([TotalTechnologyAnnualActivity[r][t][y] for y in YEAR]), ""
+            # TAC2_TotalModelHorizonTechnologyActivityUpperLimit
+            if TotalTechnologyModelPeriodActivityUpperLimit[r][t] > 0:
+                model += TotalTechnologyModelPeriodActivity[r][t] <= TotalTechnologyModelPeriodActivityUpperLimit[r][t], ""
+            # TAC3_TotalModelHorizenTechnologyActivityLowerLimit
+            if TotalTechnologyModelPeriodActivityLowerLimit[r][t] > 0:
+                model += TotalTechnologyModelPeriodActivity[r][t] >= TotalTechnologyModelPeriodActivityLowerLimit[r][t], ""
+
+    #########   		Reserve Margin Constraint	#########
+
+    for r in REGION:
+        for y in YEAR:
+            # RM1_ReserveMargin_TechnologiesIncluded_In_Activity_Units
+            model += TotalCapacityInReserveMargin[r][y] == pulp.lpSum([TotalCapacityAnnual[r][t][y] * ReserveMarginTagTechnology[r][t][y] * CapacityToActivityUnit[r][t] for t in TECHNOLOGY]), ""
+
+            for l in TIMESLICE:
+                # RM2_ReserveMargin_FuelsIncluded
+                model += DemandNeedingReserveMargin[r][l][y] == pulp.lpSum([RateOfProduction[r][l][f][y] * ReserveMarginTagFuel[r][f][y] for f in FUEL]), ""
+                # RM3_ReserveMargin_Constraint
+                model += DemandNeedingReserveMargin[r][l][y] <= TotalCapacityInReserveMargin[r][y] * (1/ReserveMargin[r][y]), ""
+
+    #########   		RE Production Target		#########
+
+    for r in REGION:
+        for y in YEAR:
+            for t in TECHNOLOGY:
+                for f in FUEL:
+                    # RE1_FuelProductionByTechnologyAnnual
+                    model += ProductionByTechnologyAnnual[r][t][f][y] == pulp.lpSum([ProductionByTechnology[r][l][t][f][y] for l in TIMESLICE]), ""
+            # RE2_TechIncluded
+            model += TotalREProductionAnnual[r][y] == pulp.lpSum([ProductionByTechnologyAnnual[r][t][f][y] * RETagTechnology[r][t][y] for t in TECHNOLOGY for f in FUEL]), ""
+            # RE3_FuelIncluded
+            model += RETotalProductionOfTargetFuelAnnual[r][y] == pulp.lpSum([RateOfProduction[r][l][f][y] * YearSplit[l][y] * RETagFuel[r][f][y] for l in TIMESLICE for f in FUEL]), ""
+            # RE4_EnergyConstraint
+            model += TotalREProductionAnnual[r][y] >= REMinProductionTarget[r][y] * RETotalProductionOfTargetFuelAnnual[r][y], ""
+
+            for t in TECHNOLOGY:
+                for f in FUEL:
+                    # RE5_FuelUseByTechnologyAnnual
+                    model += UseByTechnologyAnnual[r][t][f][y] == pulp.lpSum([RateOfUseByTechnology[r][l][t][f][y] * YearSplit[l][y] for l in TIMESLICE]), ""
+
+    #########   		Emissions Accounting		#########
+
+    for r in REGION:
+        for y in YEAR:
+            for t in TECHNOLOGY:
+                for e in EMISSION:
+                    for m in MODE_OF_OPERATION:
+                        # E1_AnnualEmissionProductionByMode
+                        model += AnnualTechnologyEmissionByMode[r][t][e][m][y] == EmissionActivityRatio[r][t][e][m][y] * TotalAnnualTechnologyActivityByMode[r][t][m][y], ""
+                    # E2_AnnualEmissionProduction
+                    model += AnnualTechnologyEmission[r][t][e][y] == pulp.lpSum([AnnualTechnologyEmissionByMode[r][t][e][m][y] for m in MODE_OF_OPERATION]), ""
+                    # E3_EmissionsPenaltyByTechAndEmission
+                    model += AnnualTechnologyEmissionPenaltyByEmission[r][t][e][y] == AnnualTechnologyEmission[r][t][e][y] * EmissionsPenalty[r][e][y], ""
+                # E4_EmissionsPenaltyByTechnology
+                model += AnnualTechnologyEmissionsPenalty[r][t][y] == pulp.lpSum([AnnualTechnologyEmissionPenaltyByEmission[r][t][e][y] for e in EMISSION]), ""
+                # E5_DiscountedEmissionsPenaltyByTechnology
+                model += DiscountedTechnologyEmissionsPenalty[r][t][y] == AnnualTechnologyEmissionsPenalty[r][t][y] * (1 / ((1 + DiscountRate[r]) ** (int(y) - min([int(yy) for yy in YEAR]) + 0.5))), ""
+
+            for e in EMISSION:
+                # E6_EmissionsAccounting1
+                model += AnnualEmissions[r][e][y] == pulp.lpSum([AnnualTechnologyEmission[r][t][e][y] for t in TECHNOLOGY]), ""
+
+        for e in EMISSION:
+            # E7_EmissionsAccounting2
+            model += pulp.lpSum([AnnualEmissions[r][e][y] for y in YEAR]) == ModelPeriodEmissions[r][e] - ModelPeriodExogenousEmission[r][e], ""
+
+            for y in YEAR:
+                # E8_AnnualEmissionsLimit
+                model += AnnualEmissions[r][e][y] <= AnnualEmissionLimit[r][e][y] - AnnualExogenousEmission[r][e][y], ""
+            # E9_ModelPeriodEmissionsLimit
+            model += ModelPeriodEmissions[r][e] <= ModelPeriodEmissionLimit[r][e], ""
+
+    logging.info("{}\tModel is built.".format(dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+    # ------------------------------------------------------------------------------------------------------------------
+    #    SOLVE
+    # ------------------------------------------------------------------------------------------------------------------
+
+    model.solve()
+    logging.info("{}\tModel is solved.".format(dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+    if str(pulp.LpStatus[model.status]) == "Optimal":
+        logging.info("The optimal solution found a cost value of {}.".format(round(model.objective.value(), 2)))
+
+        # --------------------------------------------------------------------------------------------------------------
+        #    SAVE RESULTS TO DATAFRAME
+        # --------------------------------------------------------------------------------------------------------------
+
+        # Create dataframe to save results after the model was run the first time
+        if i == 0:
+            res_df = pd.DataFrame(columns=[
+            'SCENARIO',
+            'VAR_NAME',
+            'VAR_VALUE',
+            'REGION',
+            'REGION2',
+            'DAYTYPE',
+            'EMISSION',
+            'FUEL',
+            'DAILYTIMEBRACKET',
+            'SEASON',
+            'TIMESLICE',
+            'MODE_OF_OPERATION',
+            'STORAGE',
+            'TECHNOLOGY',
+            'YEAR',
+            'FLEXIBLEDEMANDTYPE'])
+
+        res_df = saveResultsTemporary(res_df, model, "Scenario_" + str(i))
+        logging.info("{}\tResults are saved".format(dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+    else:
+        logging.error("{}\tError: Optimisation status for Scenario_{} is: {}".format(
+            dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), pulp.LpStatus[model.status]))
+
+    del model  # Delete model
+
+    # ----------------------------------------------------------------------------------------------------------------------
+    #    MONTE CARLO SIMULATION - START
+    # ----------------------------------------------------------------------------------------------------------------------
+
+    i += 1
+
+    # Note: Monte Carlo Simulation is applied to all selected parameters (mcs_parameters).
+    # For each parameter, the mcs_parameters is only applied to parameter values that are not equal to default values, i.e. values that were explicitly set.
+
+    #########			Reference parameters and data     #########
+
+    if (len(mcs_parameters) >= 1) and (mcs_num > 0) and (i == 1):
+
+        # Copy of previous paramteres. This is used to store already generated parameters with data to enhance the performance in the mcs_parameters loops
+        DiscountRate_ref = DiscountRate
+        DaySplit_ref = DaySplit
+        Conversionls_ref = Conversionls
+        Conversionld_ref = Conversionld
+        Conversionlh_ref = Conversionlh
+        DaysInDayType_ref = DaysInDayType
+        TradeRoute_ref = TradeRoute
+        DepreciationMethod_ref = DepreciationMethod
+        SpecifiedAnnualDemand_ref = SpecifiedAnnualDemand
+        SpecifiedDemandProfile_ref = SpecifiedDemandProfile
+        AccumulatedAnnualDemand_ref = AccumulatedAnnualDemand
+        CapacityToActivityUnit_ref = CapacityToActivityUnit
+        TechWithCapacityNeededToMeetPeakTS_ref = TechWithCapacityNeededToMeetPeakTS
+        CapacityFactor_ref = CapacityFactor
+        AvailabilityFactor_ref = AvailabilityFactor
+        OperationalLife_ref = OperationalLife
+        ResidualCapacity_ref = ResidualCapacity
+        InputActivityRatio_ref = InputActivityRatio
+        OutputActivityRatio_ref = OutputActivityRatio
+        CapitalCost_ref = CapitalCost
+        VariableCost_ref = VariableCost
+        FixedCost_ref = FixedCost
+        TechnologyToStorage_ref = TechnologyToStorage
+        TechnologyFromStorage_ref = TechnologyFromStorage
+        StorageLevelStart_ref = StorageLevelStart
+        StorageMaxChargeRate_ref = StorageMaxChargeRate
+        StorageMaxDischargeRate_ref = StorageMaxDischargeRate
+        MinStorageCharge_ref = MinStorageCharge
+        OperationalLifeStorage_ref = OperationalLifeStorage
+        CapitalCostStorage_ref = CapitalCostStorage
+        ResidualStorageCapacity_ref = ResidualStorageCapacity
+        CapacityOfOneTechnologyUnit_ref = CapacityOfOneTechnologyUnit
+        TotalAnnualMaxCapacity_ref = TotalAnnualMaxCapacity
+        TotalAnnualMinCapacity_ref = TotalAnnualMinCapacity
+        TotalAnnualMaxCapacityInvestment_ref = TotalAnnualMaxCapacityInvestment
+        TotalAnnualMinCapacityInvestment_ref = TotalAnnualMinCapacityInvestment
+        TotalTechnologyAnnualActivityUpperLimit_ref = TotalTechnologyAnnualActivityUpperLimit
+        TotalTechnologyAnnualActivityLowerLimit_ref = TotalTechnologyAnnualActivityLowerLimit
+        TotalTechnologyModelPeriodActivityUpperLimit_ref = TotalTechnologyModelPeriodActivityUpperLimit
+        TotalTechnologyModelPeriodActivityLowerLimit_ref = TotalTechnologyModelPeriodActivityLowerLimit
+        ReserveMarginTagTechnology_ref = ReserveMarginTagTechnology
+        ReserveMarginTagFuel_ref = ReserveMarginTagFuel
+        ReserveMargin_ref = ReserveMargin
+        RETagTechnology_ref = RETagTechnology
+        RETagFuel_ref = RETagFuel
+        REMinProductionTarget_ref = REMinProductionTarget
+        EmissionActivityRatio_ref = EmissionActivityRatio
+        EmissionsPenalty_ref = EmissionsPenalty
+        AnnualExogenousEmission_ref = AnnualExogenousEmission
+        AnnualEmissionLimit_ref = AnnualEmissionLimit
+        ModelPeriodExogenousEmission_ref = ModelPeriodExogenousEmission
+        ModelPeriodEmissionLimit_ref = ModelPeriodEmissionLimit
+
+    #########			Generate random data and overwrite selected parameters for next MCS run     	#########
+
+    ########			Global 								#########
+
+    if ("DiscountRate" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            DiscountRate_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "DiscountRate") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            DiscountRate_mcs_specified = tuple([(str(r)) for r in mcs_df[mcs_df['PARAM'] == "DiscountRate"].REGION])
+
+        DiscountRate = {str(r): generateRandomData(DiscountRate_ref[r], mcs_df[(mcs_df['PARAM'] == "DiscountRate") & (mcs_df['REGION'] == r)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r)) in DiscountRate_mcs_specified else generateRandomData(DiscountRate_ref[r], DiscountRate_mcs_default_list) for r in REGION}
 
 
-	########			Demands 							#########
+    ########			Demands 							#########
 
-	if ("SpecifiedAnnualDemand" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			SpecifiedAnnualDemand_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "SpecifiedAnnualDemand") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			SpecifiedAnnualDemand_mcs_specified = tuple([(str(r),str(f),str(y)) for r, f, y in zip(mcs_df[mcs_df['PARAM'] == "SpecifiedAnnualDemand"].REGION, mcs_df[mcs_df['PARAM'] == "SpecifiedAnnualDemand"].FUEL, mcs_df[mcs_df['PARAM'] == "SpecifiedAnnualDemand"].YEAR)])
-		
-		SpecifiedAnnualDemand = {str(r): {str(f): {str(y): generateRandomData(SpecifiedAnnualDemand_ref[r][f][y], mcs_df[(mcs_df['PARAM'] == "SpecifiedAnnualDemand") & (mcs_df['REGION'] == r) & (mcs_df['FUEL'] == f) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(f),str(y)) in SpecifiedAnnualDemand_mcs_specified else generateRandomData(SpecifiedAnnualDemand_ref[r][f][y], SpecifiedAnnualDemand_mcs_default_list) for y in YEAR} for f in FUEL} for r in REGION}
-	
-	if ("AccumulatedAnnualDemand" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			AccumulatedAnnualDemand_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "AccumulatedAnnualDemand") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			AccumulatedAnnualDemand_mcs_specified = tuple([(str(r),str(f),str(y)) for r, f, y in zip(mcs_df[mcs_df['PARAM'] == "AccumulatedAnnualDemand"].REGION, mcs_df[mcs_df['PARAM'] == "AccumulatedAnnualDemand"].FUEL, mcs_df[mcs_df['PARAM'] == "AccumulatedAnnualDemand"].YEAR)])
+    if ("SpecifiedAnnualDemand" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            SpecifiedAnnualDemand_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "SpecifiedAnnualDemand") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            SpecifiedAnnualDemand_mcs_specified = tuple([(str(r),str(f),str(y)) for r, f, y in zip(mcs_df[mcs_df['PARAM'] == "SpecifiedAnnualDemand"].REGION, mcs_df[mcs_df['PARAM'] == "SpecifiedAnnualDemand"].FUEL, mcs_df[mcs_df['PARAM'] == "SpecifiedAnnualDemand"].YEAR)])
 
-		AccumulatedAnnualDemand = {str(r): {str(f): {str(y): generateRandomData(AccumulatedAnnualDemand_ref[r][f][y], mcs_df[(mcs_df['PARAM'] == "AccumulatedAnnualDemand") & (mcs_df['REGION'] == r) & (mcs_df['FUEL'] == f) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(f),str(y)) in AccumulatedAnnualDemand_mcs_specified else generateRandomData(AccumulatedAnnualDemand_ref[r][f][y], AccumulatedAnnualDemand_mcs_default_list) for y in YEAR} for f in FUEL} for r in REGION}
+        SpecifiedAnnualDemand = {str(r): {str(f): {str(y): generateRandomData(SpecifiedAnnualDemand_ref[r][f][y], mcs_df[(mcs_df['PARAM'] == "SpecifiedAnnualDemand") & (mcs_df['REGION'] == r) & (mcs_df['FUEL'] == f) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(f),str(y)) in SpecifiedAnnualDemand_mcs_specified else generateRandomData(SpecifiedAnnualDemand_ref[r][f][y], SpecifiedAnnualDemand_mcs_default_list) for y in YEAR} for f in FUEL} for r in REGION}
 
-	#########			Performance					#########
-	
-	if ("TechWithCapacityNeededToMeetPeakTS" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			TechWithCapacityNeededToMeetPeakTS_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "TechWithCapacityNeededToMeetPeakTS") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			TechWithCapacityNeededToMeetPeakTS_mcs_specified = tuple([(str(r), str(t)) for r, t in zip(mcs_df[mcs_df['PARAM'] == "TechWithCapacityNeededToMeetPeakTS"].REGION, mcs_df[mcs_df['PARAM'] == "TechWithCapacityNeededToMeetPeakTS"].TECHNOLOGY)])
-	
-		TechWithCapacityNeededToMeetPeakTS = {str(r): {str(t): generateRandomData(TechWithCapacityNeededToMeetPeakTS_ref[r][t], mcs_df[(mcs_df['PARAM'] == "TechWithCapacityNeededToMeetPeakTS") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(t)) in TechWithCapacityNeededToMeetPeakTS_mcs_specified else generateRandomData(TechWithCapacityNeededToMeetPeakTS_ref[r][t], TechWithCapacityNeededToMeetPeakTS_mcs_default_list) for t in TECHNOLOGY} for r in REGION}
-	
-	if ("CapacityFactor" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			CapacityFactor_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "CapacityFactor") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			CapacityFactor_mcs_specified = tuple([(str(r),str(t),str(l),str(y)) for r, t, l, y in zip(mcs_df[mcs_df['PARAM'] == "CapacityFactor"].REGION, mcs_df[mcs_df['PARAM'] == "CapacityFactor"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "CapacityFactor"].TIMESLICE, mcs_df[mcs_df['PARAM'] == "CapacityFactor"].YEAR)])
-		
-		CapacityFactor = {str(r): {str(t): {str(l): {str(y): generateRandomData(CapacityFactor_ref[r][t][l][y], mcs_df[(mcs_df['PARAM'] == "CapacityFactor") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(t),str(l),str(y)) in CapacityFactor_mcs_specified else generateRandomData(CapacityFactor_ref[r][t][l][y], CapacityFactor_mcs_default_list) for y in YEAR} for l in TIMESLICE} for t in TECHNOLOGY} for r in REGION}
-	
-	if ("AvailabilityFactor" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			AvailabilityFactor_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "AvailabilityFactor") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			AvailabilityFactor_mcs_specified = tuple([(str(r),str(t),str(y)) for r, t, y in zip(mcs_df[mcs_df['PARAM'] == "AvailabilityFactor"].REGION, mcs_df[mcs_df['PARAM'] == "AvailabilityFactor"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "AvailabilityFactor"].YEAR)])
-		
-		AvailabilityFactor = {str(r): {str(t): {str(y): generateRandomData(AvailabilityFactor_ref[r][t][y], mcs_df[(mcs_df['PARAM'] == "AvailabilityFactor") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(t),str(y)) in AvailabilityFactor_mcs_specified else generateRandomData(AvailabilityFactor_ref[r][t][y], AvailabilityFactor_mcs_default_list) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-	
-	if ("OperationalLife" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			OperationalLife_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "OperationalLife") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			OperationalLife_mcs_specified = tuple([(str(r), str(t)) for r, t in zip(mcs_df[mcs_df['PARAM'] == "OperationalLife"].REGION, mcs_df[mcs_df['PARAM'] == "OperationalLife"].TECHNOLOGY)])
-		
-		OperationalLife = {str(r): {str(t): int(generateRandomData(OperationalLife_ref[r][t], mcs_df[(mcs_df['PARAM'] == "OperationalLife") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0])) if (str(r), str(t)) in OperationalLife_mcs_specified else int(generateRandomData(OperationalLife_ref[r][t], OperationalLife_mcs_default_list)) for t in TECHNOLOGY} for r in REGION}
-		
-	if ("InputActivityRatio" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			InputActivityRatio_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "InputActivityRatio") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			InputActivityRatio_mcs_specified = tuple([(str(r),str(t),str(f),str(m),str(y)) for r, t, f, m, y in zip(mcs_df[mcs_df['PARAM'] == "InputActivityRatio"].REGION, mcs_df[mcs_df['PARAM'] == "InputActivityRatio"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "InputActivityRatio"].FUEL, mcs_df[mcs_df['PARAM'] == "InputActivityRatio"].MODE_OF_OPERATION, mcs_df[mcs_df['PARAM'] == "InputActivityRatio"].YEAR)])
-		
-		InputActivityRatio = {str(r): {str(t): {str(f): {str(m): {str(y): generateRandomData(InputActivityRatio_ref[r][t][f][m][y], mcs_df[(mcs_df['PARAM'] == "InputActivityRatio") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['FUEL'] == f) & (mcs_df['MODE_OF_OPERATION'] == m) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(t),str(f),str(m),str(y)) in InputActivityRatio_mcs_specified else generateRandomData(InputActivityRatio_ref[r][t][f][m][y], InputActivityRatio_mcs_default_list) for y in YEAR} for m in MODE_OF_OPERATION} for f in FUEL} for t in TECHNOLOGY} for r in REGION}
-	
-	if ("OutputActivityRatio" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			OutputActivityRatio_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "OutputActivityRatio") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			OutputActivityRatio_mcs_specified = tuple([(str(r),str(t),str(f),str(m),str(y)) for r, t, f, m, y in zip(mcs_df[mcs_df['PARAM'] == "OutputActivityRatio"].REGION, mcs_df[mcs_df['PARAM'] == "OutputActivityRatio"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "OutputActivityRatio"].FUEL, mcs_df[mcs_df['PARAM'] == "OutputActivityRatio"].MODE_OF_OPERATION, mcs_df[mcs_df['PARAM'] == "OutputActivityRatio"].YEAR)])
-	
-		OutputActivityRatio = {str(r): {str(t): {str(f): {str(m): {str(y): generateRandomData(OutputActivityRatio_ref[r][t][f][m][y], mcs_df[(mcs_df['PARAM'] == "OutputActivityRatio") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['FUEL'] == f) & (mcs_df['MODE_OF_OPERATION'] == m) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(t),str(f),str(m),str(y)) in OutputActivityRatio_mcs_specified else generateRandomData(OutputActivityRatio_ref[r][t][f][m][y], OutputActivityRatio_mcs_default_list) for y in YEAR} for m in MODE_OF_OPERATION} for f in FUEL} for t in TECHNOLOGY} for r in REGION}
-	
-	
-	#########			Technology Costs			#########
-	
-	if ("CapitalCost" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			CapitalCost_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "CapitalCost") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			CapitalCost_mcs_specified = tuple([(str(r),str(t),str(y)) for r, t, y in zip(mcs_df[mcs_df['PARAM'] == "CapitalCost"].REGION, mcs_df[mcs_df['PARAM'] == "CapitalCost"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "CapitalCost"].YEAR)])
-		
-		CapitalCost = {str(r): {str(t): {str(y): generateRandomData(CapitalCost_ref[r][t][y], mcs_df[(mcs_df['PARAM'] == "CapitalCost") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(t),str(y)) in CapitalCost_mcs_specified else generateRandomData(CapitalCost_ref[r][t][y], CapitalCost_mcs_default_list) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-			
-	if ("VariableCost" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			VariableCost_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "VariableCost") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			VariableCost_mcs_specified = tuple([(str(r),str(t),str(m),str(y)) for r, t, m, y in zip(mcs_df[mcs_df['PARAM'] == "VariableCost"].REGION, mcs_df[mcs_df['PARAM'] == "VariableCost"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "VariableCost"].MODE_OF_OPERATION, mcs_df[mcs_df['PARAM'] == "VariableCost"].YEAR)])
-		
-		VariableCost = {str(r): {str(t): {str(m): {str(y): generateRandomData(VariableCost_ref[r][t][m][y], mcs_df[(mcs_df['PARAM'] == "VariableCost") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['MODE_OF_OPERATION'] == m) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(t),str(m),str(y)) in VariableCost_mcs_specified else generateRandomData(VariableCost_ref[r][t][m][y], VariableCost_mcs_default_list) for y in YEAR} for m in MODE_OF_OPERATION} for t in TECHNOLOGY} for r in REGION}
-			
-	if ("FixedCost" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			FixedCost_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "FixedCost") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			FixedCost_mcs_specified = tuple([(str(r),str(t),str(y)) for r, t, y in zip(mcs_df[mcs_df['PARAM'] == "FixedCost"].REGION, mcs_df[mcs_df['PARAM'] == "FixedCost"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "FixedCost"].YEAR)])
-		
-		FixedCost = {str(r): {str(t): {str(y): generateRandomData(FixedCost_ref[r][t][y], mcs_df[(mcs_df['PARAM'] == "FixedCost") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(t),str(y)) in FixedCost_mcs_specified else generateRandomData(FixedCost_ref[r][t][y], FixedCost_mcs_default_list) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-		
-	
-	#########			Storage                 	#########
-	
-	if ("StorageLevelStart" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			StorageLevelStart_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "StorageLevelStart") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			StorageLevelStart_mcs_specified = tuple([(str(r), str(s)) for r, s in zip(mcs_df[mcs_df['PARAM'] == "StorageLevelStart"].REGION, mcs_df[mcs_df['PARAM'] == "StorageLevelStart"].STORAGE)])
-		
-		StorageLevelStart = {str(r): {str(s): generateRandomData(StorageLevelStart_ref[r][s], mcs_df[(mcs_df['PARAM'] == "StorageLevelStart") & (mcs_df['REGION'] == r) & (mcs_df['STORAGE'] == s)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(s)) in StorageLevelStart_mcs_specified else generateRandomData(StorageLevelStart_ref[r][s], StorageLevelStart_mcs_default_list) for s in STORAGE} for r in REGION}
-			
-	if ("StorageMaxChargeRate" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			StorageMaxChargeRate_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "StorageMaxChargeRate") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			StorageMaxChargeRate_mcs_specified = tuple([(str(r), str(s)) for r, s in zip(mcs_df[mcs_df['PARAM'] == "StorageMaxChargeRate"].REGION, mcs_df[mcs_df['PARAM'] == "StorageMaxChargeRate"].STORAGE)])
-		
-		StorageMaxChargeRate = {str(r): {str(s): generateRandomData(StorageMaxChargeRate_ref[r][s], mcs_df[(mcs_df['PARAM'] == "StorageMaxChargeRate") & (mcs_df['REGION'] == r) & (mcs_df['STORAGE'] == s)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(s)) in StorageMaxChargeRate_mcs_specified else generateRandomData(StorageMaxChargeRate_ref[r][s], StorageMaxChargeRate_mcs_default_list) for s in STORAGE} for r in REGION}
-			
-	if ("StorageMaxDischargeRate" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			StorageMaxDischargeRate_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "StorageMaxDischargeRate") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			StorageMaxDischargeRate_mcs_specified = tuple([(str(r), str(s)) for r, s in zip(mcs_df[mcs_df['PARAM'] == "StorageMaxDischargeRate"].REGION, mcs_df[mcs_df['PARAM'] == "StorageMaxDischargeRate"].STORAGE)])
-		
-		StorageMaxDischargeRate = {str(r): {str(s): generateRandomData(StorageMaxDischargeRate_ref[r][s], mcs_df[(mcs_df['PARAM'] == "StorageMaxDischargeRate") & (mcs_df['REGION'] == r) & (mcs_df['STORAGE'] == s)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(s)) in StorageMaxDischargeRate_mcs_specified else generateRandomData(StorageMaxDischargeRate_ref[r][s], StorageMaxDischargeRate_mcs_default_list) for s in STORAGE} for r in REGION}
-			
-	if ("OperationalLifeStorage" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			OperationalLifeStorage_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "OperationalLifeStorage") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			OperationalLifeStorage_mcs_specified = tuple([(str(r), str(s)) for r, s in zip(mcs_df[mcs_df['PARAM'] == "OperationalLifeStorage"].REGION, mcs_df[mcs_df['PARAM'] == "OperationalLifeStorage"].STORAGE)])
-		
-		OperationalLifeStorage = {str(r): {str(s): generateRandomData(OperationalLifeStorage_ref[r][s], mcs_df[(mcs_df['PARAM'] == "OperationalLifeStorage") & (mcs_df['REGION'] == r) & (mcs_df['STORAGE'] == s)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(s)) in OperationalLifeStorage_mcs_specified else generateRandomData(OperationalLifeStorage_ref[r][s], OperationalLifeStorage_mcs_default_list) for s in STORAGE} for r in REGION}
-			
-	if ("CapitalCostStorage" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			CapitalCostStorage_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "CapitalCostStorage") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			CapitalCostStorage_mcs_specified = tuple([(str(r), str(s), str(y)) for r, s, y in zip(mcs_df[mcs_df['PARAM'] == "CapitalCostStorage"].REGION, mcs_df[mcs_df['PARAM'] == "CapitalCostStorage"].STORAGE, mcs_df[mcs_df['PARAM'] == "CapitalCostStorage"].YEAR)])
-		
-		CapitalCostStorage = {str(r): {str(s): {str(y): generateRandomData(CapitalCostStorage_ref[r][s][y], mcs_df[(mcs_df['PARAM'] == "CapitalCostStorage") & (mcs_df['REGION'] == r) & (mcs_df['STORAGE'] == s) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(s), str(y)) in CapitalCostStorage_mcs_specified else generateRandomData(CapitalCostStorage_ref[r][s][y], CapitalCostStorage_mcs_default_list) for y in YEAR} for s in STORAGE} for r in REGION}
-			
-	if ("ResidualStorageCapacity" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			ResidualStorageCapacity_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "ResidualStorageCapacity") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			ResidualStorageCapacity_mcs_specified = tuple([(str(r), str(s), str(y)) for r, s, y in zip(mcs_df[mcs_df['PARAM'] == "ResidualStorageCapacity"].REGION, mcs_df[mcs_df['PARAM'] == "ResidualStorageCapacity"].STORAGE, mcs_df[mcs_df['PARAM'] == "ResidualStorageCapacity"].YEAR)])
-		
-		ResidualStorageCapacity = {str(r): {str(s): {str(y): generateRandomData(ResidualStorageCapacity_ref[r][s][y], mcs_df[(mcs_df['PARAM'] == "ResidualStorageCapacity") & (mcs_df['REGION'] == r) & (mcs_df['STORAGE'] == s) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(s), str(y)) in ResidualStorageCapacity_mcs_specified else generateRandomData(ResidualStorageCapacity_ref[r][s][y], ResidualStorageCapacity_mcs_default_list) for y in YEAR} for s in STORAGE} for r in REGION}
-	
-	
-	#########			Capacity Constraints		#########
-	
-	if ("CapacityOfOneTechnologyUnit" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			CapacityOfOneTechnologyUnit_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "CapacityOfOneTechnologyUnit") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			CapacityOfOneTechnologyUnit_mcs_specified = tuple([(str(r), str(t), str(y)) for r, t, y in zip(mcs_df[mcs_df['PARAM'] == "CapacityOfOneTechnologyUnit"].REGION, mcs_df[mcs_df['PARAM'] == "CapacityOfOneTechnologyUnit"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "CapacityOfOneTechnologyUnit"].YEAR)])
-		
-		CapacityOfOneTechnologyUnit = {str(r): {str(t): {str(y): generateRandomData(CapacityOfOneTechnologyUnit_ref[r][t][y], mcs_df[(mcs_df['PARAM'] == "CapacityOfOneTechnologyUnit") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(t), str(y)) in CapacityOfOneTechnologyUnit_mcs_specified else generateRandomData(CapacityOfOneTechnologyUnit_ref[r][t][y], CapacityOfOneTechnologyUnit_mcs_default_list) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+    if ("AccumulatedAnnualDemand" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            AccumulatedAnnualDemand_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "AccumulatedAnnualDemand") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            AccumulatedAnnualDemand_mcs_specified = tuple([(str(r),str(f),str(y)) for r, f, y in zip(mcs_df[mcs_df['PARAM'] == "AccumulatedAnnualDemand"].REGION, mcs_df[mcs_df['PARAM'] == "AccumulatedAnnualDemand"].FUEL, mcs_df[mcs_df['PARAM'] == "AccumulatedAnnualDemand"].YEAR)])
 
-	
-	#########			Investment Constraints		#########
-	
-	if ("TotalAnnualMaxCapacityInvestment" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			TotalAnnualMaxCapacityInvestment_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "TotalAnnualMaxCapacityInvestment") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			TotalAnnualMaxCapacityInvestment_mcs_specified = tuple([(str(r), str(t), str(y)) for r, t, y in zip(mcs_df[mcs_df['PARAM'] == "TotalAnnualMaxCapacityInvestment"].REGION, mcs_df[mcs_df['PARAM'] == "TotalAnnualMaxCapacityInvestment"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "TotalAnnualMaxCapacityInvestment"].YEAR)])
-			
-		TotalAnnualMaxCapacityInvestment = {str(r): {str(t): {str(y): generateRandomData(TotalAnnualMaxCapacityInvestment_ref[r][t][y], mcs_df[(mcs_df['PARAM'] == "TotalAnnualMaxCapacityInvestment") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(t), str(y)) in TotalAnnualMaxCapacityInvestment_mcs_specified else generateRandomData(TotalAnnualMaxCapacityInvestment_ref[r][t][y], TotalAnnualMaxCapacityInvestment_mcs_default_list) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-			
-	if ("TotalAnnualMinCapacityInvestment" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			TotalAnnualMinCapacityInvestment_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "TotalAnnualMinCapacityInvestment") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			TotalAnnualMinCapacityInvestment_mcs_specified = tuple([(str(r), str(t), str(y)) for r, t, y in zip(mcs_df[mcs_df['PARAM'] == "TotalAnnualMinCapacityInvestment"].REGION, mcs_df[mcs_df['PARAM'] == "TotalAnnualMinCapacityInvestment"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "TotalAnnualMinCapacityInvestment"].YEAR)])
-		
-		TotalAnnualMinCapacityInvestment = {str(r): {str(t): {str(y): generateRandomData(TotalAnnualMinCapacityInvestment_ref[r][t][y], mcs_df[(mcs_df['PARAM'] == "TotalAnnualMinCapacityInvestment") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(t), str(y)) in TotalAnnualMinCapacityInvestment_mcs_specified else generateRandomData(TotalAnnualMinCapacityInvestment_ref[r][t][y], TotalAnnualMinCapacityInvestment_mcs_default_list) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-		
-	
-	#########			Activity Constraints		#########
-	
-	if ("TotalTechnologyAnnualActivityUpperLimit" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			TotalTechnologyAnnualActivityUpperLimit_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "TotalTechnologyAnnualActivityUpperLimit") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			TotalTechnologyAnnualActivityUpperLimit_mcs_specified = tuple([(str(r), str(t), str(y)) for r, t, y in zip(mcs_df[mcs_df['PARAM'] == "TotalTechnologyAnnualActivityUpperLimit"].REGION, mcs_df[mcs_df['PARAM'] == "TotalTechnologyAnnualActivityUpperLimit"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "TotalTechnologyAnnualActivityUpperLimit"].YEAR)])
-		
-		TotalTechnologyAnnualActivityUpperLimit = {str(r): {str(t): {str(y): generateRandomData(TotalTechnologyAnnualActivityUpperLimit_ref[r][t][y], mcs_df[(mcs_df['PARAM'] == "TotalTechnologyAnnualActivityUpperLimit") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(t), str(y)) in TotalTechnologyAnnualActivityUpperLimit_mcs_specified else generateRandomData(TotalTechnologyAnnualActivityUpperLimit_ref[r][t][y], TotalTechnologyAnnualActivityUpperLimit_mcs_default_list) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-			
-	if ("TotalTechnologyAnnualActivityLowerLimit" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			TotalTechnologyAnnualActivityLowerLimit_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "TotalTechnologyAnnualActivityLowerLimit") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			TotalTechnologyAnnualActivityLowerLimit_mcs_specified = tuple([(str(r), str(t), str(y)) for r, t, y in zip(mcs_df[mcs_df['PARAM'] == "TotalTechnologyAnnualActivityLowerLimit"].REGION, mcs_df[mcs_df['PARAM'] == "TotalTechnologyAnnualActivityLowerLimit"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "TotalTechnologyAnnualActivityLowerLimit"].YEAR)])
-		
-		TotalTechnologyAnnualActivityLowerLimit = {str(r): {str(t): {str(y): generateRandomData(TotalTechnologyAnnualActivityLowerLimit_ref[r][t][y], mcs_df[(mcs_df['PARAM'] == "TotalTechnologyAnnualActivityLowerLimit") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(t), str(y)) in TotalTechnologyAnnualActivityLowerLimit_mcs_specified else generateRandomData(TotalTechnologyAnnualActivityLowerLimit_ref[r][t][y], TotalTechnologyAnnualActivityLowerLimit_mcs_default_list) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
-			
-	if ("TotalTechnologyModelPeriodActivityUpperLimit" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			TotalTechnologyModelPeriodActivityUpperLimit_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "TotalTechnologyModelPeriodActivityUpperLimit") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			TotalTechnologyModelPeriodActivityUpperLimit_mcs_specified = tuple([(str(r), str(t)) for r, t in zip(mcs_df[mcs_df['PARAM'] == "TotalTechnologyModelPeriodActivityUpperLimit"].REGION, mcs_df[mcs_df['PARAM'] == "TotalTechnologyModelPeriodActivityUpperLimit"].TECHNOLOGY)])
-		
-		TotalTechnologyModelPeriodActivityUpperLimit = {str(r): {str(t): generateRandomData(TotalTechnologyModelPeriodActivityUpperLimit_ref[r][t], mcs_df[(mcs_df['PARAM'] == "TotalTechnologyModelPeriodActivityUpperLimit") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(t)) in TotalTechnologyModelPeriodActivityUpperLimit_mcs_specified else generateRandomData(TotalTechnologyModelPeriodActivityUpperLimit_ref[r][t], TotalTechnologyModelPeriodActivityUpperLimit_mcs_default_list) for t in TECHNOLOGY} for r in REGION}
-			
-	if ("TotalTechnologyModelPeriodActivityLowerLimit" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			TotalTechnologyModelPeriodActivityLowerLimit_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "TotalTechnologyModelPeriodActivityLowerLimit") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			TotalTechnologyModelPeriodActivityLowerLimit_mcs_specified = tuple([(str(r), str(t)) for r, t in zip(mcs_df[mcs_df['PARAM'] == "TotalTechnologyModelPeriodActivityLowerLimit"].REGION, mcs_df[mcs_df['PARAM'] == "TotalTechnologyModelPeriodActivityLowerLimit"].TECHNOLOGY)])
-		
-		TotalTechnologyModelPeriodActivityLowerLimit = {str(r): {str(t): generateRandomData(TotalTechnologyModelPeriodActivityLowerLimit_ref[r][t], mcs_df[(mcs_df['PARAM'] == "TotalTechnologyModelPeriodActivityLowerLimit") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(t)) in TotalTechnologyModelPeriodActivityLowerLimit_mcs_specified else generateRandomData(TotalTechnologyModelPeriodActivityLowerLimit_ref[r][t], TotalTechnologyModelPeriodActivityLowerLimit_mcs_default_list) for t in TECHNOLOGY} for r in REGION}
-		
-	
-	#########			Emissions & Penalties		#########
-	
-	if ("EmissionActivityRatio" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			EmissionActivityRatio_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "EmissionActivityRatio") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			EmissionActivityRatio_mcs_specified = tuple([(str(r),str(t),str(e),str(m),str(y)) for r, t, e, m, y in zip(mcs_df[mcs_df['PARAM'] == "EmissionActivityRatio"].REGION, mcs_df[mcs_df['PARAM'] == "EmissionActivityRatio"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "EmissionActivityRatio"].EMISSION, mcs_df[mcs_df['PARAM'] == "EmissionActivityRatio"].MODE_OF_OPERATION, mcs_df[mcs_df['PARAM'] == "EmissionActivityRatio"].YEAR)])
-		
-		EmissionActivityRatio = {str(r): {str(t): {str(e): {str(m): {str(y): generateRandomData(EmissionActivityRatio_ref[r][t][e][m][y], mcs_df[(mcs_df['PARAM'] == "EmissionActivityRatio") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['EMISSION'] == e) & (mcs_df['MODE_OF_OPERATION'] == m) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(t),str(e),str(m),str(y)) in EmissionActivityRatio_mcs_specified else generateRandomData(EmissionActivityRatio_ref[r][t][e][m][y], EmissionActivityRatio_mcs_default_list) for y in YEAR} for m in MODE_OF_OPERATION} for e in EMISSION} for t in TECHNOLOGY} for r in REGION}
-			
-	if ("EmissionsPenalty" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			EmissionsPenalty_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "EmissionsPenalty") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			EmissionsPenalty_mcs_specified = tuple([(str(r), str(e), str(y)) for r, e, y in zip(mcs_df[mcs_df['PARAM'] == "EmissionsPenalty"].REGION, mcs_df[mcs_df['PARAM'] == "EmissionsPenalty"].EMISSION, mcs_df[mcs_df['PARAM'] == "EmissionsPenalty"].YEAR)])
-		
-		EmissionsPenalty = {str(r): {str(e): {str(y): generateRandomData(EmissionsPenalty_ref[r][e][y], mcs_df[(mcs_df['PARAM'] == "EmissionsPenalty") & (mcs_df['REGION'] == r) & (mcs_df['EMISSION'] == e) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(e), str(y)) in EmissionsPenalty_mcs_specified else generateRandomData(EmissionsPenalty_ref[r][e][y], EmissionsPenalty_mcs_default_list) for y in YEAR} for e in EMISSION} for r in REGION}
-			
-	if ("AnnualExogenousEmission" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			AnnualExogenousEmission_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "AnnualExogenousEmission") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			AnnualExogenousEmission_mcs_specified = tuple([(str(r), str(e), str(y)) for r, e, y in zip(mcs_df[mcs_df['PARAM'] == "AnnualExogenousEmission"].REGION, mcs_df[mcs_df['PARAM'] == "AnnualExogenousEmission"].EMISSION, mcs_df[mcs_df['PARAM'] == "AnnualExogenousEmission"].YEAR)])
-		
-		AnnualExogenousEmission = {str(r): {str(e): {str(y): generateRandomData(AnnualExogenousEmission_ref[r][e][y], mcs_df[(mcs_df['PARAM'] == "AnnualExogenousEmission") & (mcs_df['REGION'] == r) & (mcs_df['EMISSION'] == e) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(e), str(y)) in AnnualExogenousEmission_mcs_specified else generateRandomData(AnnualExogenousEmission_ref[r][e][y], AnnualExogenousEmission_mcs_default_list) for y in YEAR} for e in EMISSION} for r in REGION}
-			
-	if ("AnnualEmissionLimit" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			AnnualEmissionLimit_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "AnnualEmissionLimit") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			AnnualEmissionLimit_mcs_specified = tuple([(str(r), str(e), str(y)) for r, e, y in zip(mcs_df[mcs_df['PARAM'] == "AnnualEmissionLimit"].REGION, mcs_df[mcs_df['PARAM'] == "AnnualEmissionLimit"].EMISSION, mcs_df[mcs_df['PARAM'] == "AnnualEmissionLimit"].YEAR)])
-		
-		AnnualEmissionLimit = {str(r): {str(e): {str(y): generateRandomData(AnnualEmissionLimit_ref[r][e][y], mcs_df[(mcs_df['PARAM'] == "AnnualEmissionLimit") & (mcs_df['REGION'] == r) & (mcs_df['EMISSION'] == e) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(e), str(y)) in AnnualEmissionLimit_mcs_specified else generateRandomData(AnnualEmissionLimit_ref[r][e][y], AnnualEmissionLimit_mcs_default_list) for y in YEAR} for e in EMISSION} for r in REGION}
-			
-	if ("ModelPeriodExogenousEmission" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			ModelPeriodExogenousEmission_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "ModelPeriodExogenousEmission") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			ModelPeriodExogenousEmission_mcs_specified = tuple([(str(r), str(e)) for r, e in zip(mcs_df[mcs_df['PARAM'] == "ModelPeriodExogenousEmission"].REGION, mcs_df[mcs_df['PARAM'] == "ModelPeriodExogenousEmission"].EMISSION)])
-		
-		ModelPeriodExogenousEmission = {str(r): {str(e): generateRandomData(ModelPeriodExogenousEmission_ref[r][e], mcs_df[(mcs_df['PARAM'] == "ModelPeriodExogenousEmission") & (mcs_df['REGION'] == r) & (mcs_df['EMISSION'] == e)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(e)) in ModelPeriodExogenousEmission_mcs_specified else generateRandomData(ModelPeriodExogenousEmission_ref[r][e], ModelPeriodExogenousEmission_mcs_default_list) for e in EMISSION} for r in REGION}
-			
-	if ("ModelPeriodEmissionLimit" in mcs_parameters) and (mcs_num > 0):
-		if i == 1:
-			ModelPeriodEmissionLimit_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "ModelPeriodEmissionLimit") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
-			ModelPeriodEmissionLimit_mcs_specified = tuple([(str(r), str(e)) for r, e in zip(mcs_df[mcs_df['PARAM'] == "ModelPeriodEmissionLimit"].REGION, mcs_df[mcs_df['PARAM'] == "ModelPeriodEmissionLimit"].EMISSION)])
-		
-		ModelPeriodEmissionLimit = {str(r): {str(e): generateRandomData(ModelPeriodEmissionLimit_ref[r][e], mcs_df[(mcs_df['PARAM'] == "ModelPeriodEmissionLimit") & (mcs_df['REGION'] == r) & (mcs_df['EMISSION'] == e)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(e)) in ModelPeriodEmissionLimit_mcs_specified else generateRandomData(ModelPeriodEmissionLimit_ref[r][e], ModelPeriodEmissionLimit_mcs_default_list) for e in EMISSION} for r in REGION}
+        AccumulatedAnnualDemand = {str(r): {str(f): {str(y): generateRandomData(AccumulatedAnnualDemand_ref[r][f][y], mcs_df[(mcs_df['PARAM'] == "AccumulatedAnnualDemand") & (mcs_df['REGION'] == r) & (mcs_df['FUEL'] == f) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(f),str(y)) in AccumulatedAnnualDemand_mcs_specified else generateRandomData(AccumulatedAnnualDemand_ref[r][f][y], AccumulatedAnnualDemand_mcs_default_list) for y in YEAR} for f in FUEL} for r in REGION}
 
-	
+    #########			Performance					#########
+
+    if ("TechWithCapacityNeededToMeetPeakTS" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            TechWithCapacityNeededToMeetPeakTS_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "TechWithCapacityNeededToMeetPeakTS") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            TechWithCapacityNeededToMeetPeakTS_mcs_specified = tuple([(str(r), str(t)) for r, t in zip(mcs_df[mcs_df['PARAM'] == "TechWithCapacityNeededToMeetPeakTS"].REGION, mcs_df[mcs_df['PARAM'] == "TechWithCapacityNeededToMeetPeakTS"].TECHNOLOGY)])
+
+        TechWithCapacityNeededToMeetPeakTS = {str(r): {str(t): generateRandomData(TechWithCapacityNeededToMeetPeakTS_ref[r][t], mcs_df[(mcs_df['PARAM'] == "TechWithCapacityNeededToMeetPeakTS") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(t)) in TechWithCapacityNeededToMeetPeakTS_mcs_specified else generateRandomData(TechWithCapacityNeededToMeetPeakTS_ref[r][t], TechWithCapacityNeededToMeetPeakTS_mcs_default_list) for t in TECHNOLOGY} for r in REGION}
+
+    if ("CapacityFactor" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            CapacityFactor_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "CapacityFactor") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            CapacityFactor_mcs_specified = tuple([(str(r),str(t),str(l),str(y)) for r, t, l, y in zip(mcs_df[mcs_df['PARAM'] == "CapacityFactor"].REGION, mcs_df[mcs_df['PARAM'] == "CapacityFactor"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "CapacityFactor"].TIMESLICE, mcs_df[mcs_df['PARAM'] == "CapacityFactor"].YEAR)])
+
+        CapacityFactor = {str(r): {str(t): {str(l): {str(y): generateRandomData(CapacityFactor_ref[r][t][l][y], mcs_df[(mcs_df['PARAM'] == "CapacityFactor") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(t),str(l),str(y)) in CapacityFactor_mcs_specified else generateRandomData(CapacityFactor_ref[r][t][l][y], CapacityFactor_mcs_default_list) for y in YEAR} for l in TIMESLICE} for t in TECHNOLOGY} for r in REGION}
+
+    if ("AvailabilityFactor" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            AvailabilityFactor_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "AvailabilityFactor") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            AvailabilityFactor_mcs_specified = tuple([(str(r),str(t),str(y)) for r, t, y in zip(mcs_df[mcs_df['PARAM'] == "AvailabilityFactor"].REGION, mcs_df[mcs_df['PARAM'] == "AvailabilityFactor"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "AvailabilityFactor"].YEAR)])
+
+        AvailabilityFactor = {str(r): {str(t): {str(y): generateRandomData(AvailabilityFactor_ref[r][t][y], mcs_df[(mcs_df['PARAM'] == "AvailabilityFactor") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(t),str(y)) in AvailabilityFactor_mcs_specified else generateRandomData(AvailabilityFactor_ref[r][t][y], AvailabilityFactor_mcs_default_list) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+
+    if ("OperationalLife" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            OperationalLife_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "OperationalLife") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            OperationalLife_mcs_specified = tuple([(str(r), str(t)) for r, t in zip(mcs_df[mcs_df['PARAM'] == "OperationalLife"].REGION, mcs_df[mcs_df['PARAM'] == "OperationalLife"].TECHNOLOGY)])
+
+        OperationalLife = {str(r): {str(t): int(generateRandomData(OperationalLife_ref[r][t], mcs_df[(mcs_df['PARAM'] == "OperationalLife") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0])) if (str(r), str(t)) in OperationalLife_mcs_specified else int(generateRandomData(OperationalLife_ref[r][t], OperationalLife_mcs_default_list)) for t in TECHNOLOGY} for r in REGION}
+
+    if ("InputActivityRatio" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            InputActivityRatio_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "InputActivityRatio") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            InputActivityRatio_mcs_specified = tuple([(str(r),str(t),str(f),str(m),str(y)) for r, t, f, m, y in zip(mcs_df[mcs_df['PARAM'] == "InputActivityRatio"].REGION, mcs_df[mcs_df['PARAM'] == "InputActivityRatio"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "InputActivityRatio"].FUEL, mcs_df[mcs_df['PARAM'] == "InputActivityRatio"].MODE_OF_OPERATION, mcs_df[mcs_df['PARAM'] == "InputActivityRatio"].YEAR)])
+
+        InputActivityRatio = {str(r): {str(t): {str(f): {str(m): {str(y): generateRandomData(InputActivityRatio_ref[r][t][f][m][y], mcs_df[(mcs_df['PARAM'] == "InputActivityRatio") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['FUEL'] == f) & (mcs_df['MODE_OF_OPERATION'] == m) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(t),str(f),str(m),str(y)) in InputActivityRatio_mcs_specified else generateRandomData(InputActivityRatio_ref[r][t][f][m][y], InputActivityRatio_mcs_default_list) for y in YEAR} for m in MODE_OF_OPERATION} for f in FUEL} for t in TECHNOLOGY} for r in REGION}
+
+    if ("OutputActivityRatio" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            OutputActivityRatio_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "OutputActivityRatio") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            OutputActivityRatio_mcs_specified = tuple([(str(r),str(t),str(f),str(m),str(y)) for r, t, f, m, y in zip(mcs_df[mcs_df['PARAM'] == "OutputActivityRatio"].REGION, mcs_df[mcs_df['PARAM'] == "OutputActivityRatio"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "OutputActivityRatio"].FUEL, mcs_df[mcs_df['PARAM'] == "OutputActivityRatio"].MODE_OF_OPERATION, mcs_df[mcs_df['PARAM'] == "OutputActivityRatio"].YEAR)])
+
+        OutputActivityRatio = {str(r): {str(t): {str(f): {str(m): {str(y): generateRandomData(OutputActivityRatio_ref[r][t][f][m][y], mcs_df[(mcs_df['PARAM'] == "OutputActivityRatio") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['FUEL'] == f) & (mcs_df['MODE_OF_OPERATION'] == m) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(t),str(f),str(m),str(y)) in OutputActivityRatio_mcs_specified else generateRandomData(OutputActivityRatio_ref[r][t][f][m][y], OutputActivityRatio_mcs_default_list) for y in YEAR} for m in MODE_OF_OPERATION} for f in FUEL} for t in TECHNOLOGY} for r in REGION}
+
+
+    #########			Technology Costs			#########
+
+    if ("CapitalCost" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            CapitalCost_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "CapitalCost") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            CapitalCost_mcs_specified = tuple([(str(r),str(t),str(y)) for r, t, y in zip(mcs_df[mcs_df['PARAM'] == "CapitalCost"].REGION, mcs_df[mcs_df['PARAM'] == "CapitalCost"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "CapitalCost"].YEAR)])
+
+        CapitalCost = {str(r): {str(t): {str(y): generateRandomData(CapitalCost_ref[r][t][y], mcs_df[(mcs_df['PARAM'] == "CapitalCost") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(t),str(y)) in CapitalCost_mcs_specified else generateRandomData(CapitalCost_ref[r][t][y], CapitalCost_mcs_default_list) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+
+    if ("VariableCost" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            VariableCost_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "VariableCost") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            VariableCost_mcs_specified = tuple([(str(r),str(t),str(m),str(y)) for r, t, m, y in zip(mcs_df[mcs_df['PARAM'] == "VariableCost"].REGION, mcs_df[mcs_df['PARAM'] == "VariableCost"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "VariableCost"].MODE_OF_OPERATION, mcs_df[mcs_df['PARAM'] == "VariableCost"].YEAR)])
+
+        VariableCost = {str(r): {str(t): {str(m): {str(y): generateRandomData(VariableCost_ref[r][t][m][y], mcs_df[(mcs_df['PARAM'] == "VariableCost") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['MODE_OF_OPERATION'] == m) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(t),str(m),str(y)) in VariableCost_mcs_specified else generateRandomData(VariableCost_ref[r][t][m][y], VariableCost_mcs_default_list) for y in YEAR} for m in MODE_OF_OPERATION} for t in TECHNOLOGY} for r in REGION}
+
+    if ("FixedCost" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            FixedCost_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "FixedCost") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            FixedCost_mcs_specified = tuple([(str(r),str(t),str(y)) for r, t, y in zip(mcs_df[mcs_df['PARAM'] == "FixedCost"].REGION, mcs_df[mcs_df['PARAM'] == "FixedCost"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "FixedCost"].YEAR)])
+
+        FixedCost = {str(r): {str(t): {str(y): generateRandomData(FixedCost_ref[r][t][y], mcs_df[(mcs_df['PARAM'] == "FixedCost") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(t),str(y)) in FixedCost_mcs_specified else generateRandomData(FixedCost_ref[r][t][y], FixedCost_mcs_default_list) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+
+
+    #########			Storage                 	#########
+
+    if ("StorageLevelStart" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            StorageLevelStart_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "StorageLevelStart") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            StorageLevelStart_mcs_specified = tuple([(str(r), str(s)) for r, s in zip(mcs_df[mcs_df['PARAM'] == "StorageLevelStart"].REGION, mcs_df[mcs_df['PARAM'] == "StorageLevelStart"].STORAGE)])
+
+        StorageLevelStart = {str(r): {str(s): generateRandomData(StorageLevelStart_ref[r][s], mcs_df[(mcs_df['PARAM'] == "StorageLevelStart") & (mcs_df['REGION'] == r) & (mcs_df['STORAGE'] == s)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(s)) in StorageLevelStart_mcs_specified else generateRandomData(StorageLevelStart_ref[r][s], StorageLevelStart_mcs_default_list) for s in STORAGE} for r in REGION}
+
+    if ("StorageMaxChargeRate" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            StorageMaxChargeRate_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "StorageMaxChargeRate") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            StorageMaxChargeRate_mcs_specified = tuple([(str(r), str(s)) for r, s in zip(mcs_df[mcs_df['PARAM'] == "StorageMaxChargeRate"].REGION, mcs_df[mcs_df['PARAM'] == "StorageMaxChargeRate"].STORAGE)])
+
+        StorageMaxChargeRate = {str(r): {str(s): generateRandomData(StorageMaxChargeRate_ref[r][s], mcs_df[(mcs_df['PARAM'] == "StorageMaxChargeRate") & (mcs_df['REGION'] == r) & (mcs_df['STORAGE'] == s)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(s)) in StorageMaxChargeRate_mcs_specified else generateRandomData(StorageMaxChargeRate_ref[r][s], StorageMaxChargeRate_mcs_default_list) for s in STORAGE} for r in REGION}
+
+    if ("StorageMaxDischargeRate" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            StorageMaxDischargeRate_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "StorageMaxDischargeRate") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            StorageMaxDischargeRate_mcs_specified = tuple([(str(r), str(s)) for r, s in zip(mcs_df[mcs_df['PARAM'] == "StorageMaxDischargeRate"].REGION, mcs_df[mcs_df['PARAM'] == "StorageMaxDischargeRate"].STORAGE)])
+
+        StorageMaxDischargeRate = {str(r): {str(s): generateRandomData(StorageMaxDischargeRate_ref[r][s], mcs_df[(mcs_df['PARAM'] == "StorageMaxDischargeRate") & (mcs_df['REGION'] == r) & (mcs_df['STORAGE'] == s)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(s)) in StorageMaxDischargeRate_mcs_specified else generateRandomData(StorageMaxDischargeRate_ref[r][s], StorageMaxDischargeRate_mcs_default_list) for s in STORAGE} for r in REGION}
+
+    if ("OperationalLifeStorage" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            OperationalLifeStorage_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "OperationalLifeStorage") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            OperationalLifeStorage_mcs_specified = tuple([(str(r), str(s)) for r, s in zip(mcs_df[mcs_df['PARAM'] == "OperationalLifeStorage"].REGION, mcs_df[mcs_df['PARAM'] == "OperationalLifeStorage"].STORAGE)])
+
+        OperationalLifeStorage = {str(r): {str(s): generateRandomData(OperationalLifeStorage_ref[r][s], mcs_df[(mcs_df['PARAM'] == "OperationalLifeStorage") & (mcs_df['REGION'] == r) & (mcs_df['STORAGE'] == s)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(s)) in OperationalLifeStorage_mcs_specified else generateRandomData(OperationalLifeStorage_ref[r][s], OperationalLifeStorage_mcs_default_list) for s in STORAGE} for r in REGION}
+
+    if ("CapitalCostStorage" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            CapitalCostStorage_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "CapitalCostStorage") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            CapitalCostStorage_mcs_specified = tuple([(str(r), str(s), str(y)) for r, s, y in zip(mcs_df[mcs_df['PARAM'] == "CapitalCostStorage"].REGION, mcs_df[mcs_df['PARAM'] == "CapitalCostStorage"].STORAGE, mcs_df[mcs_df['PARAM'] == "CapitalCostStorage"].YEAR)])
+
+        CapitalCostStorage = {str(r): {str(s): {str(y): generateRandomData(CapitalCostStorage_ref[r][s][y], mcs_df[(mcs_df['PARAM'] == "CapitalCostStorage") & (mcs_df['REGION'] == r) & (mcs_df['STORAGE'] == s) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(s), str(y)) in CapitalCostStorage_mcs_specified else generateRandomData(CapitalCostStorage_ref[r][s][y], CapitalCostStorage_mcs_default_list) for y in YEAR} for s in STORAGE} for r in REGION}
+
+    if ("ResidualStorageCapacity" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            ResidualStorageCapacity_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "ResidualStorageCapacity") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            ResidualStorageCapacity_mcs_specified = tuple([(str(r), str(s), str(y)) for r, s, y in zip(mcs_df[mcs_df['PARAM'] == "ResidualStorageCapacity"].REGION, mcs_df[mcs_df['PARAM'] == "ResidualStorageCapacity"].STORAGE, mcs_df[mcs_df['PARAM'] == "ResidualStorageCapacity"].YEAR)])
+
+        ResidualStorageCapacity = {str(r): {str(s): {str(y): generateRandomData(ResidualStorageCapacity_ref[r][s][y], mcs_df[(mcs_df['PARAM'] == "ResidualStorageCapacity") & (mcs_df['REGION'] == r) & (mcs_df['STORAGE'] == s) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(s), str(y)) in ResidualStorageCapacity_mcs_specified else generateRandomData(ResidualStorageCapacity_ref[r][s][y], ResidualStorageCapacity_mcs_default_list) for y in YEAR} for s in STORAGE} for r in REGION}
+
+
+    #########			Capacity Constraints		#########
+
+    if ("CapacityOfOneTechnologyUnit" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            CapacityOfOneTechnologyUnit_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "CapacityOfOneTechnologyUnit") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            CapacityOfOneTechnologyUnit_mcs_specified = tuple([(str(r), str(t), str(y)) for r, t, y in zip(mcs_df[mcs_df['PARAM'] == "CapacityOfOneTechnologyUnit"].REGION, mcs_df[mcs_df['PARAM'] == "CapacityOfOneTechnologyUnit"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "CapacityOfOneTechnologyUnit"].YEAR)])
+
+        CapacityOfOneTechnologyUnit = {str(r): {str(t): {str(y): generateRandomData(CapacityOfOneTechnologyUnit_ref[r][t][y], mcs_df[(mcs_df['PARAM'] == "CapacityOfOneTechnologyUnit") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(t), str(y)) in CapacityOfOneTechnologyUnit_mcs_specified else generateRandomData(CapacityOfOneTechnologyUnit_ref[r][t][y], CapacityOfOneTechnologyUnit_mcs_default_list) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+
+
+    #########			Investment Constraints		#########
+
+    if ("TotalAnnualMaxCapacityInvestment" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            TotalAnnualMaxCapacityInvestment_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "TotalAnnualMaxCapacityInvestment") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            TotalAnnualMaxCapacityInvestment_mcs_specified = tuple([(str(r), str(t), str(y)) for r, t, y in zip(mcs_df[mcs_df['PARAM'] == "TotalAnnualMaxCapacityInvestment"].REGION, mcs_df[mcs_df['PARAM'] == "TotalAnnualMaxCapacityInvestment"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "TotalAnnualMaxCapacityInvestment"].YEAR)])
+
+        TotalAnnualMaxCapacityInvestment = {str(r): {str(t): {str(y): generateRandomData(TotalAnnualMaxCapacityInvestment_ref[r][t][y], mcs_df[(mcs_df['PARAM'] == "TotalAnnualMaxCapacityInvestment") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(t), str(y)) in TotalAnnualMaxCapacityInvestment_mcs_specified else generateRandomData(TotalAnnualMaxCapacityInvestment_ref[r][t][y], TotalAnnualMaxCapacityInvestment_mcs_default_list) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+
+    if ("TotalAnnualMinCapacityInvestment" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            TotalAnnualMinCapacityInvestment_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "TotalAnnualMinCapacityInvestment") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            TotalAnnualMinCapacityInvestment_mcs_specified = tuple([(str(r), str(t), str(y)) for r, t, y in zip(mcs_df[mcs_df['PARAM'] == "TotalAnnualMinCapacityInvestment"].REGION, mcs_df[mcs_df['PARAM'] == "TotalAnnualMinCapacityInvestment"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "TotalAnnualMinCapacityInvestment"].YEAR)])
+
+        TotalAnnualMinCapacityInvestment = {str(r): {str(t): {str(y): generateRandomData(TotalAnnualMinCapacityInvestment_ref[r][t][y], mcs_df[(mcs_df['PARAM'] == "TotalAnnualMinCapacityInvestment") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(t), str(y)) in TotalAnnualMinCapacityInvestment_mcs_specified else generateRandomData(TotalAnnualMinCapacityInvestment_ref[r][t][y], TotalAnnualMinCapacityInvestment_mcs_default_list) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+
+
+    #########			Activity Constraints		#########
+
+    if ("TotalTechnologyAnnualActivityUpperLimit" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            TotalTechnologyAnnualActivityUpperLimit_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "TotalTechnologyAnnualActivityUpperLimit") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            TotalTechnologyAnnualActivityUpperLimit_mcs_specified = tuple([(str(r), str(t), str(y)) for r, t, y in zip(mcs_df[mcs_df['PARAM'] == "TotalTechnologyAnnualActivityUpperLimit"].REGION, mcs_df[mcs_df['PARAM'] == "TotalTechnologyAnnualActivityUpperLimit"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "TotalTechnologyAnnualActivityUpperLimit"].YEAR)])
+
+        TotalTechnologyAnnualActivityUpperLimit = {str(r): {str(t): {str(y): generateRandomData(TotalTechnologyAnnualActivityUpperLimit_ref[r][t][y], mcs_df[(mcs_df['PARAM'] == "TotalTechnologyAnnualActivityUpperLimit") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(t), str(y)) in TotalTechnologyAnnualActivityUpperLimit_mcs_specified else generateRandomData(TotalTechnologyAnnualActivityUpperLimit_ref[r][t][y], TotalTechnologyAnnualActivityUpperLimit_mcs_default_list) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+
+    if ("TotalTechnologyAnnualActivityLowerLimit" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            TotalTechnologyAnnualActivityLowerLimit_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "TotalTechnologyAnnualActivityLowerLimit") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            TotalTechnologyAnnualActivityLowerLimit_mcs_specified = tuple([(str(r), str(t), str(y)) for r, t, y in zip(mcs_df[mcs_df['PARAM'] == "TotalTechnologyAnnualActivityLowerLimit"].REGION, mcs_df[mcs_df['PARAM'] == "TotalTechnologyAnnualActivityLowerLimit"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "TotalTechnologyAnnualActivityLowerLimit"].YEAR)])
+
+        TotalTechnologyAnnualActivityLowerLimit = {str(r): {str(t): {str(y): generateRandomData(TotalTechnologyAnnualActivityLowerLimit_ref[r][t][y], mcs_df[(mcs_df['PARAM'] == "TotalTechnologyAnnualActivityLowerLimit") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(t), str(y)) in TotalTechnologyAnnualActivityLowerLimit_mcs_specified else generateRandomData(TotalTechnologyAnnualActivityLowerLimit_ref[r][t][y], TotalTechnologyAnnualActivityLowerLimit_mcs_default_list) for y in YEAR} for t in TECHNOLOGY} for r in REGION}
+
+    if ("TotalTechnologyModelPeriodActivityUpperLimit" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            TotalTechnologyModelPeriodActivityUpperLimit_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "TotalTechnologyModelPeriodActivityUpperLimit") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            TotalTechnologyModelPeriodActivityUpperLimit_mcs_specified = tuple([(str(r), str(t)) for r, t in zip(mcs_df[mcs_df['PARAM'] == "TotalTechnologyModelPeriodActivityUpperLimit"].REGION, mcs_df[mcs_df['PARAM'] == "TotalTechnologyModelPeriodActivityUpperLimit"].TECHNOLOGY)])
+
+        TotalTechnologyModelPeriodActivityUpperLimit = {str(r): {str(t): generateRandomData(TotalTechnologyModelPeriodActivityUpperLimit_ref[r][t], mcs_df[(mcs_df['PARAM'] == "TotalTechnologyModelPeriodActivityUpperLimit") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(t)) in TotalTechnologyModelPeriodActivityUpperLimit_mcs_specified else generateRandomData(TotalTechnologyModelPeriodActivityUpperLimit_ref[r][t], TotalTechnologyModelPeriodActivityUpperLimit_mcs_default_list) for t in TECHNOLOGY} for r in REGION}
+
+    if ("TotalTechnologyModelPeriodActivityLowerLimit" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            TotalTechnologyModelPeriodActivityLowerLimit_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "TotalTechnologyModelPeriodActivityLowerLimit") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            TotalTechnologyModelPeriodActivityLowerLimit_mcs_specified = tuple([(str(r), str(t)) for r, t in zip(mcs_df[mcs_df['PARAM'] == "TotalTechnologyModelPeriodActivityLowerLimit"].REGION, mcs_df[mcs_df['PARAM'] == "TotalTechnologyModelPeriodActivityLowerLimit"].TECHNOLOGY)])
+
+        TotalTechnologyModelPeriodActivityLowerLimit = {str(r): {str(t): generateRandomData(TotalTechnologyModelPeriodActivityLowerLimit_ref[r][t], mcs_df[(mcs_df['PARAM'] == "TotalTechnologyModelPeriodActivityLowerLimit") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(t)) in TotalTechnologyModelPeriodActivityLowerLimit_mcs_specified else generateRandomData(TotalTechnologyModelPeriodActivityLowerLimit_ref[r][t], TotalTechnologyModelPeriodActivityLowerLimit_mcs_default_list) for t in TECHNOLOGY} for r in REGION}
+
+
+    #########			Emissions & Penalties		#########
+
+    if ("EmissionActivityRatio" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            EmissionActivityRatio_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "EmissionActivityRatio") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            EmissionActivityRatio_mcs_specified = tuple([(str(r),str(t),str(e),str(m),str(y)) for r, t, e, m, y in zip(mcs_df[mcs_df['PARAM'] == "EmissionActivityRatio"].REGION, mcs_df[mcs_df['PARAM'] == "EmissionActivityRatio"].TECHNOLOGY, mcs_df[mcs_df['PARAM'] == "EmissionActivityRatio"].EMISSION, mcs_df[mcs_df['PARAM'] == "EmissionActivityRatio"].MODE_OF_OPERATION, mcs_df[mcs_df['PARAM'] == "EmissionActivityRatio"].YEAR)])
+
+        EmissionActivityRatio = {str(r): {str(t): {str(e): {str(m): {str(y): generateRandomData(EmissionActivityRatio_ref[r][t][e][m][y], mcs_df[(mcs_df['PARAM'] == "EmissionActivityRatio") & (mcs_df['REGION'] == r) & (mcs_df['TECHNOLOGY'] == t) & (mcs_df['EMISSION'] == e) & (mcs_df['MODE_OF_OPERATION'] == m) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r),str(t),str(e),str(m),str(y)) in EmissionActivityRatio_mcs_specified else generateRandomData(EmissionActivityRatio_ref[r][t][e][m][y], EmissionActivityRatio_mcs_default_list) for y in YEAR} for m in MODE_OF_OPERATION} for e in EMISSION} for t in TECHNOLOGY} for r in REGION}
+
+    if ("EmissionsPenalty" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            EmissionsPenalty_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "EmissionsPenalty") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            EmissionsPenalty_mcs_specified = tuple([(str(r), str(e), str(y)) for r, e, y in zip(mcs_df[mcs_df['PARAM'] == "EmissionsPenalty"].REGION, mcs_df[mcs_df['PARAM'] == "EmissionsPenalty"].EMISSION, mcs_df[mcs_df['PARAM'] == "EmissionsPenalty"].YEAR)])
+
+        EmissionsPenalty = {str(r): {str(e): {str(y): generateRandomData(EmissionsPenalty_ref[r][e][y], mcs_df[(mcs_df['PARAM'] == "EmissionsPenalty") & (mcs_df['REGION'] == r) & (mcs_df['EMISSION'] == e) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(e), str(y)) in EmissionsPenalty_mcs_specified else generateRandomData(EmissionsPenalty_ref[r][e][y], EmissionsPenalty_mcs_default_list) for y in YEAR} for e in EMISSION} for r in REGION}
+
+    if ("AnnualExogenousEmission" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            AnnualExogenousEmission_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "AnnualExogenousEmission") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            AnnualExogenousEmission_mcs_specified = tuple([(str(r), str(e), str(y)) for r, e, y in zip(mcs_df[mcs_df['PARAM'] == "AnnualExogenousEmission"].REGION, mcs_df[mcs_df['PARAM'] == "AnnualExogenousEmission"].EMISSION, mcs_df[mcs_df['PARAM'] == "AnnualExogenousEmission"].YEAR)])
+
+        AnnualExogenousEmission = {str(r): {str(e): {str(y): generateRandomData(AnnualExogenousEmission_ref[r][e][y], mcs_df[(mcs_df['PARAM'] == "AnnualExogenousEmission") & (mcs_df['REGION'] == r) & (mcs_df['EMISSION'] == e) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(e), str(y)) in AnnualExogenousEmission_mcs_specified else generateRandomData(AnnualExogenousEmission_ref[r][e][y], AnnualExogenousEmission_mcs_default_list) for y in YEAR} for e in EMISSION} for r in REGION}
+
+    if ("AnnualEmissionLimit" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            AnnualEmissionLimit_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "AnnualEmissionLimit") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            AnnualEmissionLimit_mcs_specified = tuple([(str(r), str(e), str(y)) for r, e, y in zip(mcs_df[mcs_df['PARAM'] == "AnnualEmissionLimit"].REGION, mcs_df[mcs_df['PARAM'] == "AnnualEmissionLimit"].EMISSION, mcs_df[mcs_df['PARAM'] == "AnnualEmissionLimit"].YEAR)])
+
+        AnnualEmissionLimit = {str(r): {str(e): {str(y): generateRandomData(AnnualEmissionLimit_ref[r][e][y], mcs_df[(mcs_df['PARAM'] == "AnnualEmissionLimit") & (mcs_df['REGION'] == r) & (mcs_df['EMISSION'] == e) & (mcs_df['YEAR'] == y)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(e), str(y)) in AnnualEmissionLimit_mcs_specified else generateRandomData(AnnualEmissionLimit_ref[r][e][y], AnnualEmissionLimit_mcs_default_list) for y in YEAR} for e in EMISSION} for r in REGION}
+
+    if ("ModelPeriodExogenousEmission" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            ModelPeriodExogenousEmission_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "ModelPeriodExogenousEmission") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            ModelPeriodExogenousEmission_mcs_specified = tuple([(str(r), str(e)) for r, e in zip(mcs_df[mcs_df['PARAM'] == "ModelPeriodExogenousEmission"].REGION, mcs_df[mcs_df['PARAM'] == "ModelPeriodExogenousEmission"].EMISSION)])
+
+        ModelPeriodExogenousEmission = {str(r): {str(e): generateRandomData(ModelPeriodExogenousEmission_ref[r][e], mcs_df[(mcs_df['PARAM'] == "ModelPeriodExogenousEmission") & (mcs_df['REGION'] == r) & (mcs_df['EMISSION'] == e)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(e)) in ModelPeriodExogenousEmission_mcs_specified else generateRandomData(ModelPeriodExogenousEmission_ref[r][e], ModelPeriodExogenousEmission_mcs_default_list) for e in EMISSION} for r in REGION}
+
+    if ("ModelPeriodEmissionLimit" in mcs_parameters) and (mcs_num > 0):
+        if i == 1:
+            ModelPeriodEmissionLimit_mcs_default_list = mcs_df[(mcs_df['PARAM'] == "ModelPeriodEmissionLimit") & (mcs_df['DEFAULT_SETTING'] == 1)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]
+            ModelPeriodEmissionLimit_mcs_specified = tuple([(str(r), str(e)) for r, e in zip(mcs_df[mcs_df['PARAM'] == "ModelPeriodEmissionLimit"].REGION, mcs_df[mcs_df['PARAM'] == "ModelPeriodEmissionLimit"].EMISSION)])
+
+        ModelPeriodEmissionLimit = {str(r): {str(e): generateRandomData(ModelPeriodEmissionLimit_ref[r][e], mcs_df[(mcs_df['PARAM'] == "ModelPeriodEmissionLimit") & (mcs_df['REGION'] == r) & (mcs_df['EMISSION'] == e)][['DISTRIBUTION', 'REL_SD', 'REL_MIN', 'REL_MAX', 'ARRAY']].values.tolist()[0]) if (str(r), str(e)) in ModelPeriodEmissionLimit_mcs_specified else generateRandomData(ModelPeriodEmissionLimit_ref[r][e], ModelPeriodEmissionLimit_mcs_default_list) for e in EMISSION} for r in REGION}
+
+
 logging.info("{}\tAnalysis is finished. Please wait until the results are saved!".format(dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
 # ----------------------------------------------------------------------------------------------------------------------
