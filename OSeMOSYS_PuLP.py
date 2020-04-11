@@ -1203,10 +1203,10 @@ while i <= mcs_num:
 			model += TotalTechnologyModelPeriodActivity[r][t] == pulp.lpSum([TotalTechnologyAnnualActivity[r][t][y] for y in YEAR]), ""
 			# TAC2_TotalModelHorizonTechnologyActivityUpperLimit
 			if TotalTechnologyModelPeriodActivityUpperLimit[r][t] > 0:
-				model += TotalTechnologyModelPeriodActivity[r][t] <= TotalTechnologyModelPeriodActivityUpperLimit, ""
+				model += TotalTechnologyModelPeriodActivity[r][t] <= TotalTechnologyModelPeriodActivityUpperLimit[r][t], ""
 			# TAC3_TotalModelHorizenTechnologyActivityLowerLimit
 			if TotalTechnologyModelPeriodActivityLowerLimit[r][t] > 0:
-				model += TotalTechnologyModelPeriodActivity[r][t] >= TotalTechnologyModelPeriodActivityLowerLimit, ""
+				model += TotalTechnologyModelPeriodActivity[r][t] >= TotalTechnologyModelPeriodActivityLowerLimit[r][t], ""
 	
 	#########   		Reserve Margin Constraint	#########
 	
