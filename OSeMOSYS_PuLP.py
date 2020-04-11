@@ -1037,7 +1037,7 @@ while i <= mcs_num:
 						if int(ld) == min([int(ldld) for ldld in DAYTYPE]):
 							model += StorageLevelDayTypeStart[r][s][ls][ld][y] == StorageLevelSeasonStart[r][s][ls][y], ""
 						else:
-							model += StorageLevelDayTypeStart[r][s][ls][ld][y] == StorageLevelDayTypeStart[r][s][ls][str(int(ld)-1)][y] + pulp.lpSum([NetChargeWithinDay[r][s][ls][str(int(ld)-1)][y] * DaysInDayType[ls][ld][str(int(ld)-1)] for lh in DAILYTIMEBRACKET]), ""
+							model += StorageLevelDayTypeStart[r][s][ls][ld][y] == StorageLevelDayTypeStart[r][s][ls][str(int(ld)-1)][y] + pulp.lpSum([NetChargeWithinDay[r][s][ls][str(int(ld)-1)][lh][y] * DaysInDayType[ls][str(int(ld)-1)][y] for lh in DAILYTIMEBRACKET]), ""
 						# S13_and_S14_and_S15_StorageLevelDayTypeFinish
 						if (int(ld) == max([int(ldld) for ldld in DAYTYPE])) and (int(ls) == max([int(lsls) for lsls in SEASON])):
 							model += StorageLevelDayTypeFinish[r][s][ls][ld][y] == StorageLevelYearFinish[r][s][y], ""
