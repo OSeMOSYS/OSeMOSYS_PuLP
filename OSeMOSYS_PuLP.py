@@ -82,18 +82,18 @@ logging.info("{}\tScript started.".format(dt.datetime.now().strftime("%Y-%m-%d %
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Input data
-modelName = "Utopia"
+inputFile = "UTOPIA_BASE.xlsx"  # Update with actual filename
+
+# Settings
 inputDir = ".\Input_Data\\"
-inputFile = "UTOPIA_BASE.xlsx"
+modelName = inputFile.split('.')[0]
 sheetSets = "SETS"
 sheetParams = "PARAMETERS"
 sheetParamsDefault = "PARAMETERS_DEFAULT"
 sheetMcs = "MCS"
 sheetMcsNum = "MCS_num"
-
-# Output data
 outputDir = ".\Output_Data\\"
-outputFile = "UTOPIA_BASE_results.xlsx"
+outputFile = f"{modelName}_result.xlsx"
 
 # ----------------------------------------------------------------------------------------------------------------------
 #    FUNCTIONS
