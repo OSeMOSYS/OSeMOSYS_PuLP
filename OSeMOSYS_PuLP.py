@@ -901,7 +901,7 @@ while i <= mcs_num:
         for t in TECHNOLOGY:
             for y in YEAR:
                 # CAa1_TotalNewCapacity
-                model += AccumulatedNewCapacity[r][t][y] == pulp.lpSum([NewCapacity[r][t][yy] for yy in YEAR if (int(y) - int(yy) < OperationalLife[r][t]) and (int(y) - int(yy) >= 0)]), ""
+                model += AccumulatedNewCapacity[r][t][y] == pulp.lpSum([NewCapacity[r][t][yy] for yy in YEAR if (float(int(y) - int(yy)) < OperationalLife[r][t]) and (int(y) - int(yy) >= 0)]), ""
                 # CAa2_TotalAnnualCapacity
                 model += TotalCapacityAnnual[r][t][y] == AccumulatedNewCapacity[r][t][y] + ResidualCapacity[r][t][y], ""
 
@@ -1015,33 +1015,33 @@ while i <= mcs_num:
                             model += NetChargeWithinDay[r][s][ls][ld][lh][y] == (RateOfStorageCharge[r][s][ls][ld][lh][y] - RateOfStorageDischarge[r][s][ls][ld][lh][y]) * DaySplit[lh][y], ""
 
                 # S5_and_S6_StorageLevelYearStart
-                if int(y) == min([int(yy) for yy in YEAR]):
+                if int(y) == int(min(YEAR)):
                     model += StorageLevelYearStart[r][s][y] == StorageLevelStart[r][s], ""
                 else:
                     model += StorageLevelYearStart[r][s][y] == StorageLevelYearStart[r][s][str(int(y)-1)] + pulp.lpSum([NetChargeWithinYear[r][s][ls][ld][lh][str(int(y)-1)] for ls in SEASON for ld in DAYTYPE for lh in DAILYTIMEBRACKET]), ""
                 # S7_and_S8_StorageLevelYearFinish
-                if int(y) < max([int(yy) for yy in YEAR]):
+                if int(y) < int(max(YEAR)):
                     model += StorageLevelYearFinish[r][s][y] == StorageLevelYearStart[r][s][str(int(y) + 1)], ""
                 else:
                     model += StorageLevelYearFinish[r][s][y] == StorageLevelYearStart[r][s][y] + pulp.lpSum([NetChargeWithinYear[r][s][ls][ld][lh][y] for ls in SEASON for ld in DAYTYPE for lh in DAILYTIMEBRACKET]), ""
 
                 for ls in SEASON:
                     # S9_and_S10_StorageLevelSeasonStart
-                    if int(ls) == min([int(lsls) for lsls in SEASON]):
+                    if int(ls) == int(min(SEASON)):
                         model += StorageLevelSeasonStart[r][s][ls][y] == StorageLevelYearStart[r][s][y], ""
                     else:
                         model += StorageLevelSeasonStart[r][s][ls][y] == StorageLevelSeasonStart[r][s][str(int(ls)-1)][y] + pulp.lpSum([NetChargeWithinYear[r][s][str(int(ls)-1)][ld][lh][y] for ld in DAYTYPE for lh in DAILYTIMEBRACKET]), ""
 
                     for ld in DAYTYPE:
                         # S11_and_S12_StorageLevelDayTypeStart
-                        if int(ld) == min([int(ldld) for ldld in DAYTYPE]):
+                        if int(ld) == int(min(DAYTYPE)):
                             model += StorageLevelDayTypeStart[r][s][ls][ld][y] == StorageLevelSeasonStart[r][s][ls][y], ""
                         else:
                             model += StorageLevelDayTypeStart[r][s][ls][ld][y] == StorageLevelDayTypeStart[r][s][ls][str(int(ld)-1)][y] + pulp.lpSum([NetChargeWithinDay[r][s][ls][str(int(ld)-1)][lh][y] * DaysInDayType[ls][str(int(ld)-1)][y] for lh in DAILYTIMEBRACKET]), ""
                         # S13_and_S14_and_S15_StorageLevelDayTypeFinish
-                        if (int(ld) == max([int(ldld) for ldld in DAYTYPE])) and (int(ls) == max([int(lsls) for lsls in SEASON])):
+                        if (int(ld) == int(max(DAYTYPE))) and (int(ls) == int(max(SEASON))):
                             model += StorageLevelDayTypeFinish[r][s][ls][ld][y] == StorageLevelYearFinish[r][s][y], ""
-                        elif int(ld) == max([int(ldld) for ldld in DAYTYPE]):
+                        elif int(ld) == int(max(DAYTYPE)):
                             model += StorageLevelDayTypeFinish[r][s][ls][ld][y] == StorageLevelSeasonStart[r][s][str(int(ls)+1)][y], ""
                         else:
                             model += StorageLevelDayTypeFinish[r][s][ls][ld][y] == StorageLevelDayTypeFinish[r][s][ls][str(int(ld)+1)][y] - pulp.lpSum([NetChargeWithinDay[r][s][ls][str(int(ld)+1)][lh][y] * DaysInDayType[ls][str(int(ld)+1)][y] for lh in DAILYTIMEBRACKET]), ""
@@ -1059,20 +1059,20 @@ while i <= mcs_num:
                             # SC1_UpperLimit_BeginningOfDailyTimeBracketOfFirstInstanceOfDayTypeInFirstWeekConstraint
                             model += (StorageLevelDayTypeStart[r][s][ls][ld][y] + pulp.lpSum([NetChargeWithinDay[r][s][ls][ld][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh)-int(lhlh) > 0])) - StorageUpperLimit[r][s][y] <= 0, ""
                             # SC2_LowerLimit_EndOfDailyTimeBracketOfLastInstanceOfDayTypeInFirstWeekConstraint
-                            if int(ld) > min([int(ldld) for ldld in DAYTYPE]):
+                            if int(ld) > int(min(DAYTYPE)):
                                 model += (StorageLevelDayTypeStart[r][s][ls][ld][y] - pulp.lpSum([NetChargeWithinDay[r][s][ls][str(int(ld)-1)][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh)-int(lhlh) < 0])) - StorageLowerLimit[r][s][y] >= 0, ""
                             # SC2_LowerLimit_EndOfDailyTimeBracketOfLastInstanceOfDayTypeInFirstWeekConstraint
-                            if int(ld) > min([int(ldld) for ldld in DAYTYPE]):
+                            if int(ld) > int(min(DAYTYPE)):
                                 model += (StorageLevelDayTypeStart[r][s][ls][ld][y] - pulp.lpSum([NetChargeWithinDay[r][s][ls][str(int(ld)-1)][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh) - int(lhlh) < 0])) - StorageUpperLimit[r][s][y] <= 0, ""
                             # SC3_LowerLimit_EndOfDailyTimeBracketOfLastInstanceOfDayTypeInLastWeekConstraint
                             model += (StorageLevelDayTypeFinish[r][s][ls][ld][y] - pulp.lpSum([NetChargeWithinDay[r][s][ls][ld][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh) - int(lhlh) < 0])) - StorageLowerLimit[r][s][y] >= 0, ""
                             # SC3_UpperLimit_EndOfDailyTimeBracketOfLastInstanceOfDayTypeInLastWeekConstraint
                             model += (StorageLevelDayTypeFinish[r][s][ls][ld][y] - pulp.lpSum([NetChargeWithinDay[r][s][ls][ld][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh) - int(lhlh) < 0])) - StorageUpperLimit[r][s][y] <= 0, ""
                             # SC4_LowerLimit_BeginningOfDailyTimeBracketOfFirstInstanceOfDayTypeInLastWeekConstraint
-                            if int(ld) > min([int(ldld) for ldld in DAYTYPE]):
+                            if int(ld) > int(min(DAYTYPE)):
                                 model += (StorageLevelDayTypeFinish[r][s][ls][str(int(ld)-1)][y] + pulp.lpSum([NetChargeWithinDay[r][s][ls][ld][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh) - int(lhlh) > 0])) - StorageLowerLimit[r][s][y] >= 0, ""
                             # SC4_UpperLimit_BeginningOfDailyTimeBracketOfFirstInstanceOfDayTypeInLastWeekConstraint
-                            if int(ld) > min([int(ldld) for ldld in DAYTYPE]):
+                            if int(ld) > int(min(DAYTYPE)):
                                 model += (StorageLevelDayTypeFinish[r][s][ls][str(int(ld)-1)][y] + pulp.lpSum([NetChargeWithinDay[r][s][ls][ld][lhlh][y] for lhlh in DAILYTIMEBRACKET if int(lh) - int(lhlh) > 0])) - StorageUpperLimit[r][s][y] <= 0, ""
                             # SC5_MaxChargeConstraint
                             model += RateOfStorageCharge[r][s][ls][ld][lh][y] <= StorageMaxChargeRate[r][s], ""
@@ -1089,22 +1089,22 @@ while i <= mcs_num:
                 # SI2_StorageLowerLimit
                 model += StorageLowerLimit[r][s][y] == MinStorageCharge[r][s][y] * StorageUpperLimit[r][s][y], ""
                 # SI3_TotalNewStorage
-                model += AccumulatedNewStorageCapacity[r][s][y] == pulp.lpSum([NewStorageCapacity[r][s][yy] for yy in YEAR if (int(y) - int(yy) < OperationalLifeStorage[r][s]) and (int(y)-int(yy) >= 0)]), ""
+                model += AccumulatedNewStorageCapacity[r][s][y] == pulp.lpSum([NewStorageCapacity[r][s][yy] for yy in YEAR if (float(int(y) - int(yy)) < OperationalLifeStorage[r][s]) and (int(y)-int(yy) >= 0)]), ""
                 # SI4_UndiscountedCapitalInvestmentStorage
                 model += CapitalInvestmentStorage[r][s][y] == CapitalCostStorage[r][s][y] * NewStorageCapacity[r][s][y], ""
                 # SI5_DiscountingCapitalInvestmentStorage
-                model += DiscountedCapitalInvestmentStorage[r][s][y] == CapitalInvestmentStorage[r][s][y] * (1/ ((1+DiscountRate[r])**(int(y) - min([int(yy) for yy in YEAR])))), ""
+                model += DiscountedCapitalInvestmentStorage[r][s][y] == CapitalInvestmentStorage[r][s][y] * (1/ ((1+DiscountRate[r])**(int(y) - int(min(YEAR))))), ""
                 # SI6_SalvageValueStorageAtEndOfPeriod1
-                if int(y) + OperationalLifeStorage[r][s] - 1 <= max([int(yy) for yy in YEAR]):
+                if float(int(y) + OperationalLifeStorage[r][s] - 1) <= float(max(YEAR)):
                     model += SalvageValueStorage[r][s][y] == 0, ""
                 # SI7_SalvageValueStorageAtEndOfPeriod2
-                if ((DepreciationMethod[r] == 1) and (int(y)+OperationalLifeStorage[r][s]-1 > max([int(yy) for yy in YEAR])) and (DiscountRate[r] == 0)) or ((DepreciationMethod[r] == 2) and (int(y)+OperationalLifeStorage[r][s]-1 > max([int(yy) for yy in YEAR]))):
-                    model += SalvageValueStorage[r][s][y] == CapitalInvestmentStorage[r][s][y] * (1-(max([int(yy) for yy in YEAR])-int(y)+1))/OperationalLifeStorage[r][s], ""
+                if ((DepreciationMethod[r] == 1) and (float(int(y)+OperationalLifeStorage[r][s]-1) > float(max(YEAR))) and (DiscountRate[r] == 0)) or ((DepreciationMethod[r] == 2) and (float(int(y)+OperationalLifeStorage[r][s]-1) > float(max(YEAR)))):
+                    model += SalvageValueStorage[r][s][y] == CapitalInvestmentStorage[r][s][y] * (1-(int(max(YEAR))-int(y)+1))/OperationalLifeStorage[r][s], ""
                 # SI8_SalvageValueStorageAtEndOfPeriod3
-                if (DepreciationMethod[r] == 1) and (int(y)+OperationalLifeStorage[r][s]-1 > max([int(yy) for yy in YEAR])) and (DiscountRate[r] > 0):
-                    model += SalvageValueStorage[r][s][y] == CapitalInvestmentStorage[r][s][y] * (1-(((1+DiscountRate[r])**(max([int(yy) for yy in YEAR]) - int(y)+1)-1)/((1+DiscountRate[r])**OperationalLifeStorage[r][s]-1))), ""
+                if (DepreciationMethod[r] == 1) and (float(int(y)+OperationalLifeStorage[r][s]-1) > float(max(YEAR))) and (DiscountRate[r] > 0):
+                    model += SalvageValueStorage[r][s][y] == CapitalInvestmentStorage[r][s][y] * (1-(((1+DiscountRate[r])**(int(max(YEAR)) - int(y)+1)-1)/((1+DiscountRate[r])**OperationalLifeStorage[r][s]-1))), ""
                 # SI9_SalvageValueStorageDiscountedToStartYear
-                model += DiscountedSalvageValueStorage[r][s][y] == SalvageValueStorage[r][s][y] * (1 /((1+DiscountRate[r])**(max([int(yy) for yy in YEAR])-min([int(yy) for yy in YEAR])+1))), ""
+                model += DiscountedSalvageValueStorage[r][s][y] == SalvageValueStorage[r][s][y] * (1 /((1+DiscountRate[r])**(int(max(YEAR))- int(min(YEAR))+1))), ""
                 # SI10_TotalDiscountedCostByStorage
                 model += TotalDiscountedStorageCost[r][s][y] == DiscountedCapitalInvestmentStorage[r][s][y]-DiscountedSalvageValueStorage[r][s][y], ""
 
@@ -1116,7 +1116,7 @@ while i <= mcs_num:
                 # CC1_UndiscountedCapitalInvestment
                 model += CapitalInvestment[r][t][y] == CapitalCost[r][t][y] * NewCapacity[r][t][y],  ""
                 # CC2_DiscountingCapitalInvestment
-                model += DiscountedCapitalInvestment[r][t][y] == CapitalInvestment[r][t][y] * (1/((1 + DiscountRate[r]) ** (int(y) - min([int(yy) for yy in YEAR])))), ""
+                model += DiscountedCapitalInvestment[r][t][y] == CapitalInvestment[r][t][y] * (1/((1 + DiscountRate[r]) ** (int(y) - int(min(YEAR))))), ""
 
     #########           Salvage Value            	#########
 
@@ -1124,16 +1124,16 @@ while i <= mcs_num:
         for y in YEAR:
             for t in TECHNOLOGY:
                 # SV1_SalvageValueAtEndOfPeriod1
-                if (DepreciationMethod[r] == 1) and (int(y) + OperationalLife[r][t] - 1 > max([int(yy) for yy in YEAR])) and (DiscountRate[r] > 0):
-                    model += SalvageValue[r][t][y] == CapitalCost[r][t][y] * NewCapacity[r][t][y] * (1 - (((1 + DiscountRate[r]) ** (max([int(yy) for yy in YEAR]) - int(y) + 1) - 1) / ((1 + DiscountRate[r]) ** OperationalLife[r][t] - 1))), ""
+                if (DepreciationMethod[r] == 1) and (float(int(y) + OperationalLife[r][t] - 1) > float(max(YEAR))) and (DiscountRate[r] > 0):
+                    model += SalvageValue[r][t][y] == CapitalCost[r][t][y] * NewCapacity[r][t][y] * (1 - (((1 + DiscountRate[r]) ** (int(max(YEAR)) - int(y) + 1) - 1) / ((1 + DiscountRate[r]) ** OperationalLife[r][t] - 1))), ""
                 # SV2_SalvageValueAtEndOfPeriod2
-                if ((DepreciationMethod[r] == 1) and (int(y) + OperationalLife[r][t] - 1 > max([int(yy) for yy in YEAR])) and (DiscountRate[r] == 0)) or ((DepreciationMethod[r] == 2) and (int(y) + OperationalLife[r][t] - 1 > max([int(yy) for yy in YEAR]))):
-                    model += SalvageValue[r][t][y] == CapitalCost[r][t][y] * NewCapacity[r][t][y] * (1 - (max([int(yy) for yy in YEAR]) - int(y) + 1) / OperationalLife[r][t]), ""
+                if ((DepreciationMethod[r] == 1) and (float(int(y) + OperationalLife[r][t] - 1) > float(max(YEAR))) and (DiscountRate[r] == 0)) or ((DepreciationMethod[r] == 2) and (float(int(y) + OperationalLife[r][t] - 1) > float(max(YEAR)))):
+                    model += SalvageValue[r][t][y] == CapitalCost[r][t][y] * NewCapacity[r][t][y] * (1 - (int(max(YEAR)) - int(y) + 1) / OperationalLife[r][t]), ""
                 # SV3_SalvageValueAtEndOfPeriod3
-                if int(y) + OperationalLife[r][t] - 1 <= max([int(yy) for yy in YEAR]):
+                if float(int(y) + OperationalLife[r][t] - 1) <= float(max(YEAR)):
                     model += SalvageValue[r][t][y] == 0, ""
                 # SV4_SalvageValueDiscountedToStartYear
-                model += DiscountedSalvageValue[r][t][y] == SalvageValue[r][t][y] * (1 / ((1 + DiscountRate[r]) ** (1 + max([int(yy) for yy in YEAR]) - min([int(yy) for yy in YEAR])))), ""
+                model += DiscountedSalvageValue[r][t][y] == SalvageValue[r][t][y] * (1 / ((1 + DiscountRate[r]) ** (1 + int(max(YEAR)) - int(min(YEAR))))), ""
 
     #########        	Operating Costs 		 	#########
 
@@ -1147,7 +1147,7 @@ while i <= mcs_num:
                 # OC3_OperatingCostsTotalAnnual
                 model += OperatingCost[r][t][y] == AnnualFixedOperatingCost[r][t][y] + AnnualVariableOperatingCost[r][t][y], ""
                 # OC4_DiscountedOperatingCostsTotalAnnual
-                model += DiscountedOperatingCost[r][t][y] == OperatingCost[r][t][y] * (1 /((1 + DiscountRate[r]) ** (int(y) - min([int(yy) for yy in YEAR]) + 0.5))), ""
+                model += DiscountedOperatingCost[r][t][y] == OperatingCost[r][t][y] * (1 /((1 + DiscountRate[r]) ** (int(y) - int(min(YEAR)) + 0.5))), ""
 
     #########       	Total Discounted Costs	 	#########
 
@@ -1257,7 +1257,7 @@ while i <= mcs_num:
                 # E4_EmissionsPenaltyByTechnology
                 model += AnnualTechnologyEmissionsPenalty[r][t][y] == pulp.lpSum([AnnualTechnologyEmissionPenaltyByEmission[r][t][e][y] for e in EMISSION]), ""
                 # E5_DiscountedEmissionsPenaltyByTechnology
-                model += DiscountedTechnologyEmissionsPenalty[r][t][y] == AnnualTechnologyEmissionsPenalty[r][t][y] * (1 / ((1 + DiscountRate[r]) ** (int(y) - min([int(yy) for yy in YEAR]) + 0.5))), ""
+                model += DiscountedTechnologyEmissionsPenalty[r][t][y] == AnnualTechnologyEmissionsPenalty[r][t][y] * (1 / ((1 + DiscountRate[r]) ** (int(y) - int(min(YEAR)) + 0.5))), ""
 
             for e in EMISSION:
                 # E6_EmissionsAccounting1
