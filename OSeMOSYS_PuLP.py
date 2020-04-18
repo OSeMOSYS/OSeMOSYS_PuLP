@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # Author: Dennis Dreier, Copyright 2019
 # OSeMOSYS version: OSeMOSYS_2017_11_08
-# License: Apache License Version 2.0
 
 __doc__ = """
 # ============================================================================
