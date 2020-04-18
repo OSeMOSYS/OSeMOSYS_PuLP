@@ -1,6 +1,7 @@
 # !/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Author: Dennis Dreier, Copyright 2019, Version: OSeMOSYS_2017_11_08_PuLP_2019_09_11
+# Author: Dennis Dreier, Copyright 2019
+# OSeMOSYS version: OSeMOSYS_2017_11_08
 # License: Apache License Version 2.0
 
 __doc__ = """
@@ -22,14 +23,6 @@ __doc__ = """
 #   OSeMOSYS GitHub: https://github.com/OSeMOSYS/
 #	OSeMOSYS website: http://www.osemosys.org/
 #	OpTIMUS community: http://www.optimus.community/
-#
-# ============================================================================
-#
-#	OSeMOSYS-PuLP 
-#	
-#	Version: OSeMOSYS_2017_11_08_PuLP_2019_09_11
-#	--> OSeMOSYS-PuLP code version: 2019_09_11
-#	--> OSeMOSYS modelling framework version: 2017_11_08
 #
 # ============================================================================
 #	
