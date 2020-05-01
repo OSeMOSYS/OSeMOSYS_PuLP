@@ -2,3 +2,5 @@ numpy>=1.16.4
 pandas>=0.25.1
 PuLP>=1.6.8
 xlrd>=1.2.0
+openpyxl>=3.0.3
+python>=3.7.7

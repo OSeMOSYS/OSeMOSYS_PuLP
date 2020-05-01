@@ -4,38 +4,38 @@
 # OSeMOSYS version: OSeMOSYS_2017_11_08
 
 __doc__ = """
-# ============================================================================
-#
-#	OSeMOSYS-PuLP: A Stochastic Modeling Framework for Long-Term Energy Systems Modeling
-#
-#
-#	How to cite OSeMOSYS-PuLP:
-#
-#	Dennis Dreier, Mark Howells, OSeMOSYS-PuLP: A Stochastic Modeling Framework for Long-Term Energy Systems Modeling. 
-#	Energies 2019, 12, 1382, https://doi.org/10.3390/en12071382
-#
-#	Additional references to be cited (see DOI links for complete references):
-#	Howells et al. (2011), https://doi.org/10.1016/j.enpol.2011.06.033
-#	Gardumi et al. (2018), https://doi.org/10.1016/j.esr.2018.03.005
-#
-#	Other sources:
-#   OSeMOSYS GitHub: https://github.com/OSeMOSYS/
-#	OSeMOSYS website: http://www.osemosys.org/
-#	OpTIMUS community: http://www.optimus.community/
-#
-# ============================================================================
-#	
-#	To use the script, do the following steps:
-#
-#	1) Provide input data to the input data file (see script section "SETUP - DATA SOURCES and MONTE CARLO SIMULATION")
-#	2) Results (i.e. values of variables to be saved) must be selected through the 
-#	activation of the respective variables names in the dictionary "var_dict"
-#	in the function "saveResultsTemporary" in this script (i.e. add or delete "#" in front of
-#	the respecitve variable name).
-#	3) Run script.
-#	4) Review results in the output data file(see script section "SETUP - DATA SOURCES and MONTE CARLO SIMULATION")
-#
-# ============================================================================
+
+========================================================================================================================
+
+    OSeMOSYS-PuLP: A Stochastic Modeling Framework for Long-Term Energy Systems Modeling
+
+========================================================================================================================
+
+    OSeMOSYS-PuLP
+    
+    This is the educational version of OSeMOSYS-PuLP
+
+
+========================================================================================================================
+
+    OSeMOSYS-PuLP: A Stochastic Modeling Framework for Long-Term Energy Systems Modeling
+
+    Please cite this software by using the following reference of the original scientific article:
+
+    Dennis Dreier, Mark Howells, OSeMOSYS-PuLP: A Stochastic Modeling Framework for Long-Term Energy Systems Modeling. 
+    Energies 2019, 12, 1382, https://doi.org/10.3390/en12071382
+
+    Additional references to be cited for the OSeMOSYS modelling framework (see DOI links for complete references):
+    Howells et al. (2011), https://doi.org/10.1016/j.enpol.2011.06.033
+    Gardumi et al. (2018), https://doi.org/10.1016/j.esr.2018.03.005
+
+    Other sources:
+    OSeMOSYS GitHub: https://github.com/OSeMOSYS/
+    OSeMOSYS website: http://www.osemosys.org/
+    OpTIMUS community: http://www.optimus.community/
+
+========================================================================================================================
+
 """
 
 import os
