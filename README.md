@@ -22,5 +22,11 @@ Clone this repository and change the directory:
 
 **OSeMOSYS-PuLP** and **OSeMOSYS-PuLP-HP** are being continuously further developed. Please always check whether you code is up-to-date by using:
     
-    git status
+    git status origin
+
+Update to latest version:
+
+    git fetch origin
+    git merge origin
+
     
