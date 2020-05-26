@@ -261,11 +261,16 @@ def saveResultsToCSV(dataframe, fileDir, fileName):
     """
     This function saves all results to a CSV file.
     """
+    _df = dataframe
+    # Shorten abstract variable names
+    _df['VAR_NAME'].replace(
+        regex={'Total': 'Tot', 'Annual': 'Ann', 'Technology': 'Tech', 'Discounted': 'Disc', 'Production': 'Prod'},
+        inplace=True)
 
     if not os.path.exists(fileDir):
         os.makedirs(fileDir)
 
-    dataframe.to_csv(path_or_buf=os.path.join(fileDir, fileName), sep=',', index=False)
+        _df.to_csv(path_or_buf=os.path.join(fileDir, fileName), sep=',', index=False)
     return
 
 
@@ -273,16 +278,21 @@ def saveResultsToExcel(dataframe, fileDir, fileName):
     """
     This function saves all results to an Excel file.
     """
+    _df = dataframe
+    # Shorten abstract variable names to keep Excel worksheet name limit of 31 characters
+    _df['VAR_NAME'].replace(
+        regex={'Total': 'Tot', 'Annual': 'Ann', 'Technology': 'Tech', 'Discounted': 'Disc', 'Production': 'Prod'},
+        inplace=True)
 
-    dataframe_list = [dataframe[dataframe['NAME'] == str(name)] for name in dataframe['NAME'].unique()]
+    dataframe_list = [_df[_df['NAME'] == str(name)] for name in _df['NAME'].unique()]
 
     if not os.path.exists(fileDir):
         os.makedirs(fileDir)
 
     writer = pd.ExcelWriter(os.path.join(fileDir, fileName))
 
-    for dataframe, name in zip(dataframe_list, dataframe['NAME'].unique()):
-        dataframe.to_excel(writer, sheet_name=name, index=False)
+    for d, name in zip(dataframe_list, _df['NAME'].unique()):
+        d.to_excel(writer, sheet_name=name, index=False)
 
     writer.save()
     return

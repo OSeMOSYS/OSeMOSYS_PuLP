@@ -387,17 +387,22 @@ def saveResults(dataframe, fileDir, fileName):
     """
     This function saves all results to an Excel file.
     """
-    df = dataframe
-    name_list = df['VAR_NAME'].unique()
-    dataframe_list = [df[df['VAR_NAME'] == str(name)] for name in name_list]
+    _df = dataframe
+    # Shorten abstract variable names to keep Excel worksheet name limit of 31 characters
+    _df['VAR_NAME'].replace(
+        regex={'Total': 'Tot', 'Annual': 'Ann', 'Technology': 'Tech', 'Discounted': 'Disc', 'Production': 'Prod'},
+        inplace=True)
+
+    name_list = _df['VAR_NAME'].unique()
+    dataframe_list = [_df[_df['VAR_NAME'] == str(name)] for name in name_list]
 
     if not os.path.exists(fileDir):
         os.makedirs(fileDir)
 
     writer = pd.ExcelWriter(os.path.join(fileDir, fileName))
 
-    for df, name in zip(dataframe_list, name_list):
-        df.to_excel(writer, sheet_name=name, index=False)
+    for d, name in zip(dataframe_list, name_list):
+        d.to_excel(writer, sheet_name=name, index=False)
 
     writer.save()
     return
