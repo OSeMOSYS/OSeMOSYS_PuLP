@@ -262,7 +262,7 @@ def saveResultsTemporary(dataframe, model_name, scenario):
         #"DiscountedOperatingCost": ["r", "t", "y"],
         #"AnnualVariableOperatingCost": ["r", "t", "y"],
         #"AnnualFixedOperatingCost": ["r", "t", "y"],
-        "TotalDiscountedCostByTechnology": ["r", "t", "y"],
+        #"TotalDiscountedCostByTechnology": ["r", "t", "y"],
         #"TotalDiscountedCost": ["r", "y"],
         #"ModelPeriodCostByRegion": ["r"],
 
