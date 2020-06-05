@@ -80,8 +80,11 @@ def createVariable(_name, _v):
     return newVarDict(_name, _v[_name]['lb'], _v[_name]['ub'], _v[_name]['cat'], _v[_name]['sets'])
 
 
-def createTuple(_df, _col_set, _col_elements, _set_name):
-    return tuple(_df[_df[str(_col_set)] == _set_name][str(_col_elements)].tolist()[0].split(" "))
+def createTuple(_df, _set_name):
+    if _set_name in ['DAYTYPE', 'DAILYTIMEBRACKET', 'SEASON', 'MODE_OF_OPERATION', 'YEAR']:
+        return tuple([str(int(float(x))) for x in _df[_set_name] if x != 'nan'])
+    else:
+        return tuple([x for x in _df[_set_name] if x != 'nan'])
 
 
 def permutateSets(_sets_list):
@@ -110,8 +113,19 @@ def loadData(filePath, sheetSets, sheetParams, sheetParamsDefault, sheetMcs, she
 
     # Data: SETS
     sets_df = pd.read_excel(io=filePath, sheet_name=sheetSets)
-    sets_df['SET'] = sets_df['SET'].astype(str)
-    sets_df['ELEMENTS'] = sets_df['ELEMENTS'].astype(str)
+    sets_df['REGION'] = sets_df['REGION'].astype(str)
+    sets_df['REGION2'] = sets_df['REGION2'].astype(str)
+    sets_df['DAYTYPE'] = sets_df['DAYTYPE'].astype(str)
+    sets_df['EMISSION'] = sets_df['EMISSION'].astype(str)
+    sets_df['FUEL'] = sets_df['FUEL'].astype(str)
+    sets_df['DAILYTIMEBRACKET'] = sets_df['DAILYTIMEBRACKET'].astype(str)
+    sets_df['SEASON'] = sets_df['SEASON'].astype(str)
+    sets_df['TIMESLICE'] = sets_df['TIMESLICE'].astype(str)
+    sets_df['MODE_OF_OPERATION'] = sets_df['MODE_OF_OPERATION'].astype(str)
+    sets_df['STORAGE'] = sets_df['STORAGE'].astype(str)
+    sets_df['TECHNOLOGY'] = sets_df['TECHNOLOGY'].astype(str)
+    sets_df['YEAR'] = sets_df['YEAR'].astype(str)
+    sets_df['FLEXIBLEDEMANDTYPE'] = sets_df['FLEXIBLEDEMANDTYPE'].astype(str)
 
     # Data: PARAMETERS
     df = pd.read_excel(io=filePath, sheet_name=sheetParams)
@@ -263,7 +277,7 @@ def saveResultsToCSV(dataframe, fileDir, fileName):
     """
     _df = dataframe
     # Shorten abstract variable names
-    _df['VAR_NAME'].replace(
+    _df['NAME'].replace(
         regex={'Total': 'Tot', 'Annual': 'Ann', 'Technology': 'Tech', 'Discounted': 'Disc', 'Production': 'Prod'},
         inplace=True)
 
@@ -280,7 +294,7 @@ def saveResultsToExcel(dataframe, fileDir, fileName):
     """
     _df = dataframe
     # Shorten abstract variable names to keep Excel worksheet name limit of 31 characters
-    _df['VAR_NAME'].replace(
+    _df['NAME'].replace(
         regex={'Total': 'Tot', 'Annual': 'Ann', 'Technology': 'Tech', 'Discounted': 'Disc', 'Production': 'Prod'},
         inplace=True)
 
@@ -314,19 +328,19 @@ logging.info(f"\t{dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\t"
 #    SETS
 # ----------------------------------------------------------------------------------------------------------------------
 
-YEAR = createTuple(sets_df, 'SET', 'ELEMENTS', 'YEAR')
-TECHNOLOGY = createTuple(sets_df, 'SET', 'ELEMENTS', 'TECHNOLOGY')
-TIMESLICE = createTuple(sets_df, 'SET', 'ELEMENTS', 'TIMESLICE')
-FUEL = createTuple(sets_df, 'SET', 'ELEMENTS', 'FUEL')
-EMISSION = createTuple(sets_df, 'SET', 'ELEMENTS', 'EMISSION')
-MODE_OF_OPERATION = createTuple(sets_df, 'SET', 'ELEMENTS', 'MODE_OF_OPERATION')
-REGION = createTuple(sets_df, 'SET', 'ELEMENTS', 'REGION')
-REGION2 = createTuple(sets_df, 'SET', 'ELEMENTS', 'REGION2')
-SEASON = createTuple(sets_df, 'SET', 'ELEMENTS', 'SEASON')
-DAYTYPE = createTuple(sets_df, 'SET', 'ELEMENTS', 'DAYTYPE')
-DAILYTIMEBRACKET = createTuple(sets_df, 'SET', 'ELEMENTS', 'DAILYTIMEBRACKET')
-FLEXIBLEDEMANDTYPE = createTuple(sets_df, 'SET', 'ELEMENTS', 'FLEXIBLEDEMANDTYPE')
-STORAGE = createTuple(sets_df, 'SET', 'ELEMENTS', 'STORAGE')
+YEAR = createTuple(sets_df, 'YEAR')
+TECHNOLOGY = createTuple(sets_df, 'TECHNOLOGY')
+TIMESLICE = createTuple(sets_df, 'TIMESLICE')
+FUEL = createTuple(sets_df, 'FUEL')
+EMISSION = createTuple(sets_df, 'EMISSION')
+MODE_OF_OPERATION = createTuple(sets_df, 'MODE_OF_OPERATION')
+REGION = createTuple(sets_df, 'REGION')
+REGION2 = createTuple(sets_df, 'REGION2')
+SEASON = createTuple(sets_df, 'SEASON')
+DAYTYPE = createTuple(sets_df, 'DAYTYPE')
+DAILYTIMEBRACKET = createTuple(sets_df, 'DAILYTIMEBRACKET')
+FLEXIBLEDEMANDTYPE = createTuple(sets_df, 'FLEXIBLEDEMANDTYPE')
+STORAGE = createTuple(sets_df, 'STORAGE')
 
 logging.info(f"\t{dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\t"
              f"Sets are created.")

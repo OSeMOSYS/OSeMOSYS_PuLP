@@ -87,8 +87,19 @@ def loadData(filePath, sheetSets, sheetParams, sheetParamsDefault, sheetMcs, she
     """
     # Data: SETS
     sets_df = pd.read_excel(io=filePath, sheet_name=sheetSets)
-    sets_df['SET'] = sets_df['SET'].astype(str)
-    sets_df['ELEMENTS'] = sets_df['ELEMENTS'].astype(str)
+    sets_df['REGION'] = sets_df['REGION'].astype(str)
+    sets_df['REGION2'] = sets_df['REGION2'].astype(str)
+    sets_df['DAYTYPE'] = sets_df['DAYTYPE'].astype(str)
+    sets_df['EMISSION'] = sets_df['EMISSION'].astype(str)
+    sets_df['FUEL'] = sets_df['FUEL'].astype(str)
+    sets_df['DAILYTIMEBRACKET'] = sets_df['DAILYTIMEBRACKET'].astype(str)
+    sets_df['SEASON'] = sets_df['SEASON'].astype(str)
+    sets_df['TIMESLICE'] = sets_df['TIMESLICE'].astype(str)
+    sets_df['MODE_OF_OPERATION'] = sets_df['MODE_OF_OPERATION'].astype(str)
+    sets_df['STORAGE'] = sets_df['STORAGE'].astype(str)
+    sets_df['TECHNOLOGY'] = sets_df['TECHNOLOGY'].astype(str)
+    sets_df['YEAR'] = sets_df['YEAR'].astype(str)
+    sets_df['FLEXIBLEDEMANDTYPE'] = sets_df['FLEXIBLEDEMANDTYPE'].astype(str)
     # Data: PARAMETERS
     p_df = pd.read_excel(io=filePath, sheet_name=sheetParams)
     p_df = p_df.fillna(0)
@@ -422,19 +433,19 @@ logging.info("{}\tData is loaded.".format(dt.datetime.now().strftime("%Y-%m-%d %
 #    SETS
 # ----------------------------------------------------------------------------------------------------------------------
 
-YEAR = sets_df[sets_df['SET'] == "YEAR"].ELEMENTS.tolist()[0].split(" ")
-TECHNOLOGY = sets_df[sets_df['SET'] == "TECHNOLOGY"].ELEMENTS.tolist()[0].split(" ")
-TIMESLICE = sets_df[sets_df['SET'] == "TIMESLICE"].ELEMENTS.tolist()[0].split(" ")
-FUEL = sets_df[sets_df['SET'] == "FUEL"].ELEMENTS.tolist()[0].split(" ")
-EMISSION = sets_df[sets_df['SET'] == "EMISSION"].ELEMENTS.tolist()[0].split(" ")
-MODE_OF_OPERATION = sets_df[sets_df['SET'] == "MODE_OF_OPERATION"].ELEMENTS.tolist()[0].split(" ")
-REGION = sets_df[sets_df['SET'] == "REGION"].ELEMENTS.tolist()[0].split(" ")
-REGION2 = sets_df[sets_df['SET'] == "REGION2"].ELEMENTS.tolist()[0].split(" ")
-SEASON = sets_df[sets_df['SET'] == "SEASON"].ELEMENTS.tolist()[0].split(" ")
-DAYTYPE = sets_df[sets_df['SET'] == "DAYTYPE"].ELEMENTS.tolist()[0].split(" ")
-DAILYTIMEBRACKET = sets_df[sets_df['SET'] == "DAILYTIMEBRACKET"].ELEMENTS.tolist()[0].split(" ")
-FLEXIBLEDEMANDTYPE = sets_df[sets_df['SET'] == "FLEXIBLEDEMANDTYPE"].ELEMENTS.tolist()[0].split(" ")
-STORAGE = sets_df[sets_df['SET'] == "STORAGE"].ELEMENTS.tolist()[0].split(" ")
+REGION = [r for r in sets_df['REGION'] if r != 'nan']
+REGION2 = [rr for rr in sets_df['REGION2'] if rr != 'nan']
+DAYTYPE = [str(int(float(ld))) for ld in sets_df['DAYTYPE'] if ld != 'nan']
+EMISSION = [e for e in sets_df['EMISSION'] if e != 'nan']
+FUEL = [f for f in sets_df['FUEL'] if f != 'nan']
+DAILYTIMEBRACKET = [str(int(float(lh))) for lh in sets_df['DAILYTIMEBRACKET'] if lh != 'nan']
+SEASON = [str(int(float(ls))) for ls in sets_df['SEASON'] if ls != 'nan']
+TIMESLICE = [l for l in sets_df['TIMESLICE'] if l != 'nan']
+MODE_OF_OPERATION = [str(int(float(m))) for m in sets_df['MODE_OF_OPERATION'] if m != 'nan']
+STORAGE = [s for s in sets_df['STORAGE'] if s != 'nan']
+TECHNOLOGY = [t for t in sets_df['TECHNOLOGY'] if t != 'nan']
+YEAR = [str(int(float(y))) for y in sets_df['YEAR'] if y != 'nan']
+FLEXIBLEDEMANDTYPE = [fdt for fdt in sets_df['FLEXIBLEDEMANDTYPE'] if fdt != 'nan']
 
 logging.info("{}\tSets are created.".format(dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
