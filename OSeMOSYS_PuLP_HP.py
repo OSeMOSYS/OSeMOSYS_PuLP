@@ -247,11 +247,35 @@ def saveResultsTemporary(_model, _scenario_i):
 
     # All other variables
     res = tuple([v for v in _model.variables() if v.name != "Cost"])
-    other_df = pd.DataFrame(data={'NAME': [v.name.split('_')[0] for v in res],
-                                 'VALUE': [v.value() for v in res],
-                                 'INDICES': [variables[str(v.name.split('_')[0])]['indices'] for v in res],
-                                 'ELEMENTS': [v.name.split('_')[1:] for v in res],
-                                 'SCENARIO': [_scenario_i for v in res]
+
+    names = []
+    values = []
+    indices = []
+    elements = []
+    scenarios = []
+
+    for v in res:
+        full_name = v.name.split('_')
+        name = full_name[0]
+        # logging.info(full_name)
+        if not "dummy" in v.name:
+            value = v.value()
+            index = variables[str(name)]['indices']
+            element = full_name[1:]
+            scenario = _scenario_i
+
+            names.append(name)
+            values.append(value)
+            indices.append(index)
+            elements.append(element)
+            scenarios.append(scenario)
+
+
+    other_df = pd.DataFrame(data={'NAME': names,
+                                 'VALUE': values,
+                                 'INDICES': indices,
+                                 'ELEMENTS': elements,
+                                 'SCENARIO': scenarios
                                  })
 
     df = pd.concat([df, other_df])
