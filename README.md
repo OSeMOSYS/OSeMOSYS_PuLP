@@ -11,6 +11,11 @@ This is the **educational version** of OSeMOSYS-PuLP
 This is the **high performance (HP) version** of OSeMOSYS-PuLP.
 Additional performance improvements will be developed for this code over time.
 
+# Branches
+
+The `standard` branch contains a version of the source code which is close to that of OSeMOSYS GNU MathProg
+The `master` branch contains a customised version of the code with new storage equations added.
+
 # Citation
 Dennis Dreier, Mark Howells, OSeMOSYS-PuLP: A Stochastic Modeling Framework for Long-Term Energy Systems Modeling. Energies 2019, 12, 1382, https://doi.org/10.3390/en12071382
 
@@ -21,7 +26,7 @@ Clone this repository and change the directory:
     cd OSeMOSYS_PuLP
 
 **OSeMOSYS-PuLP** and **OSeMOSYS-PuLP-HP** are being continuously further developed. Please always check whether you code is up-to-date by using:
-    
+
     git status origin
 
 Update to latest version:
@@ -29,4 +34,3 @@ Update to latest version:
     git fetch origin
     git merge origin
 
-    
