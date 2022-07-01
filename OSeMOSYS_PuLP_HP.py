@@ -791,80 +791,7 @@ while i <= n:
         # Acc4_ModelPeriodCostByRegion
         model += ModelPeriodCostByRegion.get(r) == pulp.lpSum([TotalDiscountedCost.get(ci([r, y])) for y in YEAR]), ""
 
-    # ====  Storage Equations  ====
-
-    # for rldlhlssy in REGION_DAYTYPE_DAILYTIMEBRACKET_SEASON_STORAGE_YEAR:
-    #     # S1_RateOfStorageCharge
-    #     model += RateOfStorageCharge.get(ci(rldlhlssy)) == pulp.lpSum([RateOfActivity.get(ci([rldlhlssy[0], *lmt, rldlhlssy[5]])) * TechnologyToStorage.get(ci([rldlhlssy[0], *lmt[1:3], rldlhlssy[3]]), dflt.get('TechnologyToStorage')) * Conversionls.get(ci([lmt[0], rldlhlssy[3]]), dflt.get('Conversionls')) * Conversionld.get(ci([lmt[0], rldlhlssy[1]]), dflt.get('Conversionld')) * Conversionlh.get(ci([lmt[0], rldlhlssy[2]]), dflt.get('Conversionlh')) for lmt in TIMESLICE_MODE_OF_OPERATION_TECHNOLOGY if TechnologyToStorage.get(ci([rldlhlssy[0], lmt[1], rldlhlssy[4], lmt[2]]), dflt.get('TechnologyToStorage')) > 0]), ""
-    #     # S2_RateOfStorageDischarge
-    #     model += RateOfStorageDischarge.get(ci(rldlhlssy)) == pulp.lpSum([RateOfActivity.get(ci([rldlhlssy[0], *lmt, rldlhlssy[5]])) * TechnologyFromStorage.get(ci([rldlhlssy[0], *lmt[1:3], rldlhlssy[3]]), dflt.get('TechnologyFromStorage')) * Conversionls.get(ci([lmt[0], rldlhlssy[3]]), dflt.get('Conversionls')) * Conversionld.get(ci([lmt[0], rldlhlssy[1]]), dflt.get('Conversionld')) * Conversionlh.get(ci([lmt[0], rldlhlssy[2]]), dflt.get('Conversionlh')) for lmt in TIMESLICE_MODE_OF_OPERATION_TECHNOLOGY if TechnologyFromStorage.get(ci([rldlhlssy[0], lmt[1], rldlhlssy[4], lmt[2]]), dflt.get('TechnologyFromStorage')) > 0]), ""
-    #     # S3_NetChargeWithinYear
-    #     model += NetChargeWithinYear.get(ci(rldlhlssy)) == pulp.lpSum([(RateOfStorageCharge.get(ci(rldlhlssy)) - RateOfStorageDischarge.get(ci(rldlhlssy))) * YearSplit.get(ci([l, rldlhlssy[5]])) * Conversionls.get(ci([l, rldlhlssy[3]]), dflt.get('Conversionls')) * Conversionld.get(ci([l, rldlhlssy[1]]), dflt.get('Conversionld')) * Conversionlh.get(ci([l, rldlhlssy[2]]), dflt.get('Conversionlh')) for l in TIMESLICE if (Conversionls.get(ci([l, rldlhlssy[3]]), dflt.get('Conversionls')) > 0) and (Conversionld.get(ci([l, rldlhlssy[1]]), dflt.get('Conversionld')) > 0) and (Conversionlh.get(ci([l, rldlhlssy[2]]), dflt.get('Conversionlh')) > 0)]), ""
-    #     # S4_NetChargeWithinDay
-    #     model += NetChargeWithinDay.get(ci(rldlhlssy)) == (RateOfStorageCharge.get(ci(rldlhlssy)) - RateOfStorageDischarge.get(ci(rldlhlssy))) * DaySplit.get(ci([rldlhlssy[2], rldlhlssy[5]]), dflt.get('DaySplit')), ""
-    # for rsy in REGION_STORAGE_YEAR:
-    #     # S5_and_S6_StorageLevelYearStart
-    #     if int(rsy[2]) == int(min(YEAR)):
-    #         model += StorageLevelYearStart.get(ci(rsy)) == StorageLevelStart.get(ci(rsy[0:2]), dflt.get('StorageLevelStart')), ""
-    #     else:
-    #         model += StorageLevelYearStart.get(ci(rsy)) == StorageLevelYearStart.get(ci([*rsy[0:2], str(int(rsy[2])-1)])) + pulp.lpSum([NetChargeWithinYear.get(ci([*rsy[0:2], *ldlhls, str(int(rsy[2])-1)])) for ldlhls in DAYTYPE_DAILYTIMEBRACKET_SEASON]), ""
-    #     # S7_and_S8_StorageLevelYearFinish
-    #     if int(rsy[2]) < int(max(YEAR)):
-    #         model += StorageLevelYearFinish.get(ci(rsy)) == StorageLevelYearStart.get(ci([*rsy[0:2], str(int(rsy[2])-1)])), ""
-    #     else:
-    #         model += StorageLevelYearFinish.get(ci(rsy)) == StorageLevelYearStart.get(ci(rsy)) + pulp.lpSum([NetChargeWithinYear.get(ci([*rsy[0:2], *ldlhls, rsy[2]])) for ldlhls in DAYTYPE_DAILYTIMEBRACKET_SEASON]), ""
-
-    # for rlssy in REGION_SEASON_STORAGE_YEAR:
-    #     # S9_and_S10_StorageLevelSeasonStart
-    #     if int(rlssy[1]) == int(min(SEASON)):
-    #         model += StorageLevelSeasonStart.get(ci(rlssy)) == StorageLevelYearStart.get(ci([rlssy[0], *rlssy[2:4]])), ""
-    #     else:
-    #         model += StorageLevelSeasonStart.get(ci(rlssy)) == StorageLevelSeasonStart.get(ci([rlssy[0], str(int(rlssy[1])-1), *rlssy[2:4]])) + pulp.lpSum([NetChargeWithinYear.get(ci([rlssy[0], str(int(rlssy[1])-1), *ldlh, *rlssy[2:4]])) for ldlh in DAYTYPE_DAILYTIMEBRACKET]), ""
-
-    # for rldlssy in REGION_DAYTYPE_SEASON_STORAGE_YEAR:
-    #     # S11_and_S12_StorageLevelDayTypeStart
-    #     if int(rldlssy[1]) == int(min(DAYTYPE)):
-    #         model += StorageLevelDayTypeStart.get(ci(rldlssy)) == StorageLevelSeasonStart.get(ci([rldlssy[0], *rldlssy[2:5]])), ""
-    #     else:
-    #         model += StorageLevelDayTypeStart.get(ci(rldlssy)) == StorageLevelDayTypeStart.get(ci([rldlssy[0], str(int(rldlssy[1])-1), *rldlssy[2:5]])) + pulp.lpSum([NetChargeWithinDay.get(ci([rldlssy[0], str(int(rldlssy[1])-1), lh, rldlssy[2:5]])) * DaysInDayType.get(ci([rldlssy[2], str(int(rldlssy[1])-1), rldlssy[4]]), dflt.get('DaysInDayType')) for lh in DAILYTIMEBRACKET]), ""
-    #     # S13_and_S14_and_S15_StorageLevelDayTypeFinish
-    #     if (int(rldlssy[1]) == int(max(DAYTYPE))) and (int(rldlssy[2]) == int(max(SEASON))):
-    #         model += StorageLevelDayTypeFinish.get(ci(rldlssy)) == StorageLevelYearFinish.get(ci([rldlssy[0], *rldlssy[3:5]])), ""
-    #     elif int(rldlssy[1]) == int(max(DAYTYPE)):
-    #         model += StorageLevelDayTypeFinish.get(ci(rldlssy)) == StorageLevelSeasonStart.get(ci([rldlssy[0], str(int(rldlssy[2])+1), *rldlssy[3:5]])), ""
-    #     else:
-    #         model += StorageLevelDayTypeFinish.get(ci(rldlssy)) == StorageLevelDayTypeFinish.get(ci([rldlssy[0], rldlssy[2], str(int(rldlssy[1])+1), *rldlssy[3:5]])) - pulp.lpSum([NetChargeWithinDay.get(ci([rldlssy[0], str(int(rldlssy[1])-1), lh, rldlssy[2:5]])) * DaysInDayType.get(ci([rldlssy[2], str(int(rldlssy[1])-1), rldlssy[4]]), dflt.get('DaysInDayType')) for lh in DAILYTIMEBRACKET]), ""
-
-    # # ====  Storage Constraints  ====
-
-    # for rldlhlssy in REGION_DAYTYPE_DAILYTIMEBRACKET_SEASON_STORAGE_YEAR:
-    #     # SC1_LowerLimit_BeginningOfDailyTimeBracketOfFirstInstanceOfDayTypeInFirstWeekConstraint
-    #     model += (StorageLevelDayTypeStart.get(ci([*rldlhlssy[0:2], *rldlhlssy[3:6]])) + pulp.lpSum([NetChargeWithinDay.get(ci([*rldlhlssy[0:2], lhlh, *rldlhlssy[3:6]])) for lhlh in DAILYTIMEBRACKET if int(rldlhlssy[2])-int(lhlh) > 0])) - StorageLowerLimit.get(ci([rldlhlssy[0], *rldlhlssy[4:6]])) >= 0, ""
-    #     # SC1_UpperLimit_BeginningOfDailyTimeBracketOfFirstInstanceOfDayTypeInFirstWeekConstraint
-    #     model += (StorageLevelDayTypeStart.get(ci([*rldlhlssy[0:2], *rldlhlssy[3:6]])) + pulp.lpSum([NetChargeWithinDay.get(ci([*rldlhlssy[0:2], lhlh, *rldlhlssy[3:6]])) for lhlh in DAILYTIMEBRACKET if int(rldlhlssy[2])-int(lhlh) > 0])) - StorageUpperLimit.get(ci([rldlhlssy[0], *rldlhlssy[4:6]])) <= 0, ""
-    #     # SC2_LowerLimit_EndOfDailyTimeBracketOfLastInstanceOfDayTypeInFirstWeekConstraint
-    #     if int(rldlhlssy[1]) > int(min(DAYTYPE)):
-    #         model += (StorageLevelDayTypeStart.get(ci([*rldlhlssy[0:2], *rldlhlssy[3:6]])) - pulp.lpSum([NetChargeWithinDay.get(ci([*rldlhlssy[0:2], lhlh, str(int(rldlhlssy[3])-1), *rldlhlssy[4:6]])) for lhlh in DAILYTIMEBRACKET if int(rldlhlssy[2])-int(lhlh) < 0])) - StorageLowerLimit.get(ci([rldlhlssy[0], *rldlhlssy[4:6]])) >= 0, ""
-    #     # SC2_LowerLimit_EndOfDailyTimeBracketOfLastInstanceOfDayTypeInFirstWeekConstraint
-    #     if int(rldlhlssy[1]) > int(min(DAYTYPE)):
-    #         model += (StorageLevelDayTypeStart.get(ci([*rldlhlssy[0:2], *rldlhlssy[3:6]])) - pulp.lpSum([NetChargeWithinDay.get(ci([*rldlhlssy[0:2], lhlh, str(int(rldlhlssy[3])-1), *rldlhlssy[4:6]])) for lhlh in DAILYTIMEBRACKET if int(rldlhlssy[2]) - int(lhlh) < 0])) - StorageUpperLimit.get(ci([rldlhlssy[0], *rldlhlssy[4:6]])) <= 0, ""
-    #     # SC3_LowerLimit_EndOfDailyTimeBracketOfLastInstanceOfDayTypeInLastWeekConstraint
-    #     model += (StorageLevelDayTypeFinish.get(ci([*rldlhlssy[0:2], *rldlhlssy[3:6]])) - pulp.lpSum([NetChargeWithinDay.get(ci([*rldlhlssy[0:2], lhlh, *rldlhlssy[3:6]])) for lhlh in DAILYTIMEBRACKET if int(rldlhlssy[2]) - int(lhlh) < 0])) - StorageLowerLimit.get(ci([rldlhlssy[0], *rldlhlssy[4:6]])) >= 0, ""
-    #     # SC3_UpperLimit_EndOfDailyTimeBracketOfLastInstanceOfDayTypeInLastWeekConstraint
-    #     model += (StorageLevelDayTypeFinish.get(ci([*rldlhlssy[0:2], *rldlhlssy[3:6]])) - pulp.lpSum([NetChargeWithinDay.get(ci([*rldlhlssy[0:2], lhlh, *rldlhlssy[3:6]])) for lhlh in DAILYTIMEBRACKET if int(rldlhlssy[2]) - int(lhlh) < 0])) - StorageUpperLimit.get(ci([rldlhlssy[0], *rldlhlssy[4:6]])) <= 0, ""
-    #     # SC4_LowerLimit_BeginningOfDailyTimeBracketOfFirstInstanceOfDayTypeInLastWeekConstraint
-    #     if int(rldlhlssy[1]) > int(min(DAYTYPE)):
-    #         model += (StorageLevelDayTypeFinish.get(ci([rldlhlssy[0], str(int(rldlhlssy[1])-1), *rldlhlssy[3:6]])) + pulp.lpSum([NetChargeWithinDay.get(ci([*rldlhlssy[0:2], lhlh, *rldlhlssy[3:6]])) for lhlh in DAILYTIMEBRACKET if int(rldlhlssy[2]) - int(lhlh) > 0])) - StorageLowerLimit.get(ci([rldlhlssy[0], *rldlhlssy[4:6]])) >= 0, ""
-    #     # SC4_UpperLimit_BeginningOfDailyTimeBracketOfFirstInstanceOfDayTypeInLastWeekConstraint
-    #     if int(rldlhlssy[1]) > int(min(DAYTYPE)):
-    #         model += (StorageLevelDayTypeFinish.get(ci([rldlhlssy[0], str(int(rldlhlssy[1])-1), *rldlhlssy[3:6]])) + pulp.lpSum([NetChargeWithinDay.get(ci([*rldlhlssy[0:2], lhlh, *rldlhlssy[3:6]])) for lhlh in DAILYTIMEBRACKET if int(rldlhlssy[2]) - int(lhlh) > 0])) - StorageUpperLimit.get(ci([rldlhlssy[0], *rldlhlssy[4:6]])) <= 0, ""
-
-    #     # SC5_MaxChargeConstraint
-    #     model += RateOfStorageCharge.get(ci(rldlhlssy)) <= StorageMaxChargeRate.get(ci(rldlhlssy[4:6]), dflt.get('StorageMaxChargeRate')), ""
-    #     # SC6_MaxDischargeConstraint
-    #     model += RateOfStorageDischarge.get(ci(rldlhlssy)) <= StorageMaxDischargeRate.get(ci(rldlhlssy[4:6]), dflt.get('StorageMaxDischargeRate')), ""
-    
-    # ====  Updated Storage equations -  ===
+      # ====  Updated Storage equations -  ===
 
     for rsy in REGION_STORAGE_YEAR:
      #S5_and_S6_StorageLevelYearStart
@@ -911,13 +838,6 @@ while i <= n:
         
         #SC2_Upper_Limit
         model += StorageLevelTimesliceStart.get(ci(rsly)) <= StorageUpperLimit.get(ci([*rsly[0:2], rsly[3]])), "" 
-        
-        #SC3_Charging_Upper_Limit
-        #model += StorageMaxChargeRate.get(ci([*rsly[0:2], rsly[3]]), dflt.get('StorageMaxChargeRate')) >= StorageLevelTimesliceStart.get(ci(rsly)) - StorageLevelTimesliceStart.get(ci([*rsly[0:2], str(int(rsly[2])-1), rsly[3]])), ""
-
-        #SC4_Charging_Lower_Limit
-        #model += StorageMaxDischargeRate.get(ci([*rsly[0:2], rsly[3]]), dflt.get('StorageMaxDischargeRate')) >= StorageLevelTimesliceStart.get(ci([*rsly[0:2], str(int(rsly[2])-1), rsly[3]])) - StorageLevelTimesliceStart.get(ci(rsly)), ""
-
 
     # ====  Storage Investments  ====
 
