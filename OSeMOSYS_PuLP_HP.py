@@ -12,23 +12,23 @@ __doc__ = """
 ========================================================================================================================
 
     OSeMOSYS-PuLP-HP
-    
+
     This is the high performance (HP) version of OSeMOSYS-PuLP
-    This is a BETA version.   
+    This is a BETA version.
 
 ========================================================================================================================
 
     OSeMOSYS-PuLP: A Stochastic Modeling Framework for Long-Term Energy Systems Modeling
-    
+
     Please cite this software by using the following reference of the original scientific article:
-    
-    Dennis Dreier, Mark Howells, OSeMOSYS-PuLP: A Stochastic Modeling Framework for Long-Term Energy Systems Modeling. 
+
+    Dennis Dreier, Mark Howells, OSeMOSYS-PuLP: A Stochastic Modeling Framework for Long-Term Energy Systems Modeling.
     Energies 2019, 12, 1382, https://doi.org/10.3390/en12071382
-    
+
     Additional references to be cited for the OSeMOSYS modelling framework (see DOI links for complete references):
     Howells et al. (2011), https://doi.org/10.1016/j.enpol.2011.06.033
     Gardumi et al. (2018), https://doi.org/10.1016/j.esr.2018.03.005
-    
+
     Other sources:
     OSeMOSYS GitHub: https://github.com/OSeMOSYS/
     OSeMOSYS website: http://www.osemosys.org/
@@ -55,14 +55,14 @@ logging.info(f"\t{dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\tOSeMOSYS-PuL
 
 # Input data
 inputFile = "UTOPIA_BASE.xlsx"  # Update with actual filename
-inputDir = ".\Input_Data\\"
+inputDir = "Input_Data"
 modelName = inputFile.split('.')[0]
 sheetSets = "SETS"
 sheetParams = "PARAMETERS"
 sheetParamsDefault = "PARAMETERS_DEFAULT"
 sheetMcs = "MCS"
 sheetMcsNum = "MCS_num"
-outputDir = ".\Output_Data\\"
+outputDir = "Output_Data"
 
 # Output data
 save_as_csv = True  # True: Output data will be saved as CSV file; False: No saving. Note: Rapid process.
