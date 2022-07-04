@@ -1,0 +1,49 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+preferred-citation:
+  type: article
+  authors:
+  - family-names: Dreier
+    given-names: Dennis
+    orcid: "https://orcid.org/0000-0002-0437-2093"
+  - family-names: Howells
+    given-names: Mark
+    orcid: "https://orcid.org/0000-0001-6419-4957"
+  title: "OSeMOSYS-PuLP: A Stochastic Modeling Framework for Long-Term Energy Systems Modeling"
+  doi: "10.3390/en12071382"
+  journal: Energies
+  volume: 12
+  number: 7
+  year: 2019
+  date-released: 2019-12
+references:
+  authors:
+    - family-names: Howells
+      given-names: Mark
+      orcid: "https://orcid.org/0000-0001-6419-4957"
+    - family-names: Strachan
+      given-names: Neil
+    - family-names: Heaps
+      given-names: Charlie
+    - family-names: Huntington
+      given-names: Hillard
+    - family-names: Kypreos
+      given-names: Socrates
+    - family-names: Hughes
+      given-names: Alison
+    - family-names: Silveira
+      given-names: Semida
+    - family-names: DeCarolis
+      given-names: Joe
+    - family-names: Bazillian
+      given-names: Morgan
+    - family-names: Roehrl
+      given-names: Alexander
+  volume: 39
+  issue: 10
+  year: 2011
+  pages: 5850-5870
+  doi: "10.1016/j.enpol.2011.06.033"
+  title: "OSeMOSYS: The Open Source Energy Modeling System: An introduction to its ethos, structure and development"
+  type: article
+title: "OSeMOSYS PuLP"
