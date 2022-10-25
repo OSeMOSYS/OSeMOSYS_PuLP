@@ -742,8 +742,8 @@ while i <= n:
     # ====  Capacity Adequacy B  ====
 
         # CAb1_PlannedMaintenance
-        model += pulp.lpSum([RateOfTotalActivity.get(ci(rlty)) * YearSplit.get(ci([l, rlty[3]])) for l in TIMESLICE]) <= pulp.lpSum([TotalCapacityAnnual.get(ci([rlty[0], *rlty[2:4]])) * CapacityFactor.get(ci(rlty), dflt.get('CapacityFactor')) * YearSplit.get(ci([l, rlty[3]])) for l in TIMESLICE]) * AvailabilityFactor.get(ci([rlty[0], *rlty[2:4]]), dflt.get('AvailabilityFactor')) * CapacityToActivityUnit.get(ci([rlty[0], rlty[2]]), dflt.get('CapacityToActivityUnit')), ""
-
+        # CAb1_PlannedMaintenance
+        model += pulp.lpSum([RateOfTotalActivity.get(ci([rty[0], l, *rty[1:3]])) * YearSplit.get(ci([l, rty[2]])) for l in TIMESLICE]) <= pulp.lpSum(([TotalCapacityAnnual.get(ci(rty)) * CapacityFactor.get(ci([rty[0], l, *rty[1:3]]), dflt.get('CapacityFactor')) * YearSplit.get(ci([l, rty[2]])) for l in TIMESLICE])) * CapacityToActivityUnit.get(ci([rty[0], rty[1]]), dflt.get('CapacityToActivityUnit')) * AvailabilityFactor.get(ci([rty[0], *rty[1:3]]), dflt.get('AvailabilityFactor')), ""
     # ====  Energy Balance A  ====
 
     for rflmty in REGION_FUEL_TIMESLICE_MODE_OF_OPERATION_TECHNOLOGY_YEAR:
@@ -1013,7 +1013,7 @@ while i <= n:
         # E2_AnnualEmissionProduction
         model += AnnualTechnologyEmission.get(ci(rety)) == pulp.lpSum([AnnualTechnologyEmissionByMode.get(ci([*rety[0:2], m, *rety[2:4]])) for m in MODE_OF_OPERATION]), ""
         # E3_EmissionsPenaltyByTechAndEmission
-        model += AnnualTechnologyEmissionPenaltyByEmission.get(ci(rety)) == AnnualTechnologyEmission.get(ci(rety)) * EmissionsPenalty.get(ci([*rety[0:2], *rety[3]]), dflt.get('EmissionsPenalty')), ""
+        model += AnnualTechnologyEmissionPenaltyByEmission.get(ci(rety)) == AnnualTechnologyEmission.get(ci(rety)) * EmissionsPenalty.get(ci([*rety[0:2], rety[3]]), dflt.get('EmissionsPenalty')), ""
 
     for rty in REGION_TECHNOLOGY_YEAR:
         # E4_EmissionsPenaltyByTechnology
