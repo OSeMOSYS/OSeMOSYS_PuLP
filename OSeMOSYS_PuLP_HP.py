@@ -57,7 +57,6 @@ logging.info(f"\t{dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\tOSeMOSYS-PuL
 
 inputFile = "Test_case_Input.xlsx"  # Update with actual filename
 inputDir = "Input_Data"
-
 modelName = inputFile.split('.')[0]
 sheetSets = "SETS"
 sheetParams = "PARAMETERS"
@@ -398,10 +397,12 @@ Conversionls = createParameter(df, 'Conversionls')
 DaySplit = createParameter(df, 'DaySplit')
 DaysInDayType = createParameter(df, 'DaysInDayType')
 DepreciationMethod = createParameter(df, 'DepreciationMethod')
-DiscountRate = createParameter(df, 'DiscountRate')
+DiscountRateTech = createParameter(df, 'DiscountRateTech')
+DiscountRateSto = createParameter(df, 'DiscountRateSto')
 EmissionActivityRatio = createParameter(df, 'EmissionActivityRatio')
 EmissionsPenalty = createParameter(df, 'EmissionsPenalty')
 FixedCost = createParameter(df, 'FixedCost')
+GIS_Losses = createParameter(df, 'GIS_Losses')
 InputActivityRatio = createParameter(df, 'InputActivityRatio')
 MinStorageCharge = createParameter(df, 'MinStorageCharge')
 ModelPeriodEmissionLimit = createParameter(df, 'ModelPeriodEmissionLimit')
@@ -409,6 +410,7 @@ ModelPeriodExogenousEmission = createParameter(df, 'ModelPeriodExogenousEmission
 OperationalLife = createParameter(df, 'OperationalLife')
 OperationalLifeStorage = createParameter(df, 'OperationalLifeStorage')
 OutputActivityRatio = createParameter(df, 'OutputActivityRatio')
+OutputModeofoperation = createParameter(df, 'OutputModeofoperation')
 REMinProductionTarget = createParameter(df, 'REMinProductionTarget')
 RETagFuel = createParameter(df, 'RETagFuel')
 RETagTechnology = createParameter(df, 'RETagTechnology')
@@ -423,6 +425,14 @@ StorageLevelStart = createParameter(df, 'StorageLevelStart')
 StorageMaxChargeRate = createParameter(df, 'StorageMaxChargeRate')
 StorageMaxDischargeRate = createParameter(df, 'StorageMaxDischargeRate')
 StorageMaxCapacity = createParameter(df, 'StorageMaxCapacity')
+StorageLevelStart = createParameter(df, 'StorageLevelStart')
+StorageL2D = createParameter(df, 'StorageL2D')
+StorageUvalue = createParameter(df, 'StorageUvalue')
+StorageFlowTemperature = createParameter(df, 'StorageFlowTemperature')
+StorageReturnTemperature = createParameter(df, 'StorageReturnTemperature')
+StorageAmbientTemperature = createParameter(df, 'StorageAmbientTemperature')
+Storagetagheating = createParameter(df, 'Storagetagheating')
+Storagetagcooling = createParameter(df, 'Storagetagcooling')
 TechWithCapacityNeededToMeetPeakTS = createParameter(df, 'TechWithCapacityNeededToMeetPeakTS')
 TechnologyFromStorage = createParameter(df, 'TechnologyFromStorage')
 TechnologyToStorage = createParameter(df, 'TechnologyToStorage')
@@ -482,6 +492,7 @@ DAYTYPE_DAILYTIMEBRACKET = permutateSets([DAYTYPE, DAILYTIMEBRACKET])
 FUEL_TECHNOLOGY = permutateSets([FUEL, TECHNOLOGY])
 FUEL_TIMESLICE = permutateSets([FUEL, TIMESLICE])
 MODE_OF_OPERATION_TECHNOLOGY = permutateSets([ MODE_OF_OPERATION, TECHNOLOGY])
+TIMESLICE_YEAR = permutateSets([ TIMESLICE, YEAR])
 
 # ----------------------------------------------------------------------------------------------------------------------
 #    MODEL CONSTRUCTION
@@ -523,19 +534,25 @@ while i <= n:
        'NetChargeWithinYear': {'sets': [REGION, DAYTYPE, DAILYTIMEBRACKET, SEASON, STORAGE, YEAR], 'lb': None, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 'ld', 'lh', 'ls', 's', 'y']},
        'NetChargeWithinDay': {'sets': [REGION, DAYTYPE, DAILYTIMEBRACKET, SEASON, STORAGE, YEAR], 'lb': None, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 'ld', 'lh', 'ls', 's', 'y']},
        'StorageLevelYearStart': {'sets': [REGION, STORAGE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's', 'y']},
-       'StorageLevelYearFinish': {'sets': [REGION, STORAGE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's', 'y']},
+       'StorageLevelYearFinish': {'StorageLevelYearFinish': {'sets': [REGION, STORAGE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's', 'y']},'sets': [REGION, STORAGE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's', 'y']},
        'StorageLevelSeasonStart': {'sets': [REGION, SEASON, STORAGE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 'ls', 's', 'y']},
        'StorageLevelTimesliceStart': {'sets': [REGION, STORAGE, TIMESLICE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's', 'l', 'y']},
+       'StorageLosses': {'sets': [REGION, STORAGE, TIMESLICE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's', 'l', 'y']},
        'StorageLevelDayTypeStart': {'sets': [REGION, DAYTYPE, SEASON, STORAGE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 'ld', 'ls', 's', 'y']},
        'StorageLevelDayTypeFinish': {'sets': [REGION, DAYTYPE, SEASON, STORAGE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 'ld', 'ls', 's', 'y']},
        'StorageLowerLimit': {'sets': [REGION, STORAGE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's', 'y']},
        'StorageUpperLimit': {'sets': [REGION, STORAGE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's', 'y']},
+       'StorageLossesheating': {'sets': [REGION, STORAGE, TIMESLICE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's', 'l', 'y']},
+       'StorageLossescooling': {'sets': [REGION, STORAGE, TIMESLICE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's', 'l', 'y']},
        'AccumulatedNewStorageCapacity': {'sets': [REGION, STORAGE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's', 'y']},
+       'StorageSurfaceArea': {'sets': [REGION, STORAGE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's', 'y']},
        'NewStorageCapacity': {'sets': [REGION, STORAGE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's', 'y']},
        'CapitalInvestmentStorage': {'sets': [REGION, STORAGE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's', 'y']},
        'DiscountedCapitalInvestmentStorage': {'sets': [REGION, STORAGE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's', 'y']},
+       'DiscountedCapitalInvestmentByStorage': {'sets': [REGION, STORAGE], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's']},
        'SalvageValueStorage': {'sets': [REGION, STORAGE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's', 'y']},
        'DiscountedSalvageValueStorage': {'sets': [REGION, STORAGE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's', 'y']},
+       'DiscountedSalvageValueByStorage': {'sets': [REGION, STORAGE], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's']},
        'TotalDiscountedStorageCost': {'sets': [REGION, STORAGE, YEAR], 'lb': 0, 'ub': None, 'cat': 'Continuous', 'indices': ['r', 's', 'y']},
 
         # ====  Capacity Variables  ====
@@ -625,11 +642,15 @@ while i <= n:
     StorageLevelYearFinish = createVariable('StorageLevelYearFinish', variables)
     StorageLevelSeasonStart = createVariable('StorageLevelSeasonStart', variables)
     StorageLevelTimesliceStart = createVariable('StorageLevelTimesliceStart', variables)
+    StorageLosses = createVariable('StorageLosses', variables)
     StorageLevelDayTypeStart = createVariable('StorageLevelDayTypeStart', variables)
     StorageLevelDayTypeFinish = createVariable('StorageLevelDayTypeFinish', variables)
     StorageLowerLimit = createVariable('StorageLowerLimit', variables)
     StorageUpperLimit = createVariable('StorageUpperLimit', variables)
     AccumulatedNewStorageCapacity = createVariable('AccumulatedNewStorageCapacity', variables)
+    StorageSurfaceArea = createVariable('StorageSurfaceArea', variables)
+    StorageLossescooling = createVariable('StorageLossescooling', variables)
+    StorageLossesheating = createVariable('StorageLossesheating', variables)
     NewStorageCapacity = createVariable('NewStorageCapacity', variables)
     CapitalInvestmentStorage = createVariable('CapitalInvestmentStorage', variables)
     DiscountedCapitalInvestmentStorage = createVariable('DiscountedCapitalInvestmentStorage', variables)
@@ -725,7 +746,7 @@ while i <= n:
 
     for rlty in REGION_TIMESLICE_TECHNOLOGY_YEAR:
         # CAa3_TotalActivityOfEachTechnology
-        model += RateOfTotalActivity.get(ci(rlty)) == pulp.lpSum([RateOfActivity.get(ci([*rlty[0:2], m, *rlty[2:4]])) for m in MODE_OF_OPERATION]), ""
+        model += RateOfTotalActivity.get(ci(rlty)) == pulp.lpSum([(RateOfActivity.get(ci([*rlty[0:2], m, *rlty[2:4]])) * OutputModeofoperation.get(ci([rlty[0], m, *rlty[2:4]]), dflt.get('OutputModeofoperation'))) for m in MODE_OF_OPERATION]), ""
         # CAa4_Constraint_Capacity
         model += RateOfTotalActivity.get(ci(rlty)) <= TotalCapacityAnnual.get(ci([rlty[0], *rlty[2:4]])) * CapacityFactor.get(ci(rlty), dflt.get('CapacityFactor')) * CapacityToActivityUnit.get(ci([rlty[0], rlty[2]]), dflt.get('CapacityToActivityUnit')), ""
 
@@ -740,8 +761,6 @@ while i <= n:
             model += NewCapacity.get(ci(rty)) == CapacityOfOneTechnologyUnit.get(ci(rty), dflt.get('CapacityOfOneTechnologyUnit')) * NumberOfNewTechnologyUnits.get(ci(rty)), ""
 
     # ====  Capacity Adequacy B  ====
-
-        # CAb1_PlannedMaintenance
         # CAb1_PlannedMaintenance
         model += pulp.lpSum([RateOfTotalActivity.get(ci([rty[0], l, *rty[1:3]])) * YearSplit.get(ci([l, rty[2]])) for l in TIMESLICE]) <= pulp.lpSum(([TotalCapacityAnnual.get(ci(rty)) * CapacityFactor.get(ci([rty[0], l, *rty[1:3]]), dflt.get('CapacityFactor')) * YearSplit.get(ci([l, rty[2]])) for l in TIMESLICE])) * CapacityToActivityUnit.get(ci([rty[0], rty[1]]), dflt.get('CapacityToActivityUnit')) * AvailabilityFactor.get(ci([rty[0], *rty[1:3]]), dflt.get('AvailabilityFactor')), ""
     # ====  Energy Balance A  ====
@@ -754,7 +773,7 @@ while i <= n:
             model += RateOfProductionByTechnologyByMode.get(ci(rflmty)) == 0, ""
         # EBa4_RateOfFuelUse1
         if InputActivityRatio.get(ci([*rflmty[0:2], *rflmty[3:6]]), dflt.get('InputActivityRatio')) != 0:
-            model += RateOfUseByTechnologyByMode.get(ci(rflmty)) == RateOfActivity.get(ci([rflmty[0], *rflmty[2:6]])) * InputActivityRatio.get(ci([*rflmty[0:2], *rflmty[3:6]]), dflt.get('OutputActivityRatio')), ""
+            model += RateOfUseByTechnologyByMode.get(ci(rflmty)) == RateOfActivity.get(ci([rflmty[0], *rflmty[2:6]])) * InputActivityRatio.get(ci([*rflmty[0:2], *rflmty[3:6]]), dflt.get('InputActivityRatio')), ""
 
     for rflty in REGION_FUEL_TIMESLICE_TECHNOLOGY_YEAR:
         # EBa2_RateOfFuelProduction2
@@ -777,7 +796,7 @@ while i <= n:
         model += Demand.get(ci(rfly)) == RateOfDemand.get(ci(rfly)) * YearSplit.get(ci(rfly[2:4])), ""
 
         # EBa11_EnergyBalanceEachTS5
-        model += Production.get(ci(rfly)) >= Demand.get(ci(rfly)) + Use.get(ci(rfly)) + pulp.lpSum([Trade.get(ci([rfly[0], rr, *rfly[1:4]])) * TradeRoute.get(ci([rfly[0], rr, rfly[1], rfly[3]]), dflt.get('TradeRoute')) for rr in REGION2]), ""
+        model += Production.get(ci(rfly)) >= Demand.get(ci(rfly)) + Use.get(ci(rfly)) + (GIS_Losses.get(ci([*rfly[0:2]]), dflt.get('GIS_Losses')) * (8760 / int(max(TIMESLICE)))) + pulp.lpSum([Trade.get(ci([rfly[0], rr, *rfly[1:4]])) * TradeRoute.get(ci([rfly[0], rr, rfly[1], rfly[3]]), dflt.get('TradeRoute')) for rr in REGION2]), ""
 
     for rr2fly in REGION_REGION2_FUEL_TIMESLICE_YEAR:
         # EBa10_EnergyBalanceEachTS4
@@ -824,24 +843,20 @@ while i <= n:
         if int(rsy[2]) == int(min(YEAR)):
             model += StorageLevelYearStart.get(ci(rsy)) == StorageLevelStart.get(ci(rsy[0:2]), dflt.get('StorageLevelStart')), ""
         else:
-            model += StorageLevelYearStart.get(ci(rsy)) == StorageLevelYearStart.get(ci([*rsy[0:2], str(int(rsy[2])-1)])) + ((pulp.lpSum(RateOfStorageCharge.get(ci([*rsy[0:2], l, str(int(rsy[2])-1)])) - RateOfStorageDischarge.get(ci([*rsy[0:2], l, str(int(rsy[2])-1)]))) * YearSplit.get(ci([l, str(int(rsy[2])-1)]))) for l in TIMESLICE), ""
+            model += StorageLevelYearStart.get(ci(rsy)) == StorageLevelYearStart.get(ci([*rsy[0:2], str(int(rsy[2])-1)])) + pulp.lpSum([((RateOfStorageCharge.get(ci([*rsy[0:2], l, str(int(rsy[2])-1)])) - RateOfStorageDischarge.get(ci([*rsy[0:2], l, str(int(rsy[2])-1)]))) * YearSplit.get(ci([l, str(int(rsy[2])-1)]))) for l in TIMESLICE]), ""
                 
     for rsly in REGION_STORAGE_TIMESLICE_YEAR:
         # S1_RateOfStorageCharge
-         model += RateOfStorageCharge.get(ci(rsly)) == pulp.lpSum([RateOfActivity.get(ci([rsly[0], rsly[2], *mt, rsly[3]])) * TechnologyToStorage.get(ci([*rsly[0:2], *mt]), dflt.get('TechnologyToStorage'))  for mt in MODE_OF_OPERATION_TECHNOLOGY if TechnologyToStorage.get(ci(([*rsly[0:2],*mt])), dflt.get('TechnologyToStorage')) > 0]), ""
+        model += RateOfStorageCharge.get(ci(rsly)) == pulp.lpSum([RateOfActivity.get(ci([rsly[0], rsly[2], *mt, rsly[3]])) * TechnologyToStorage.get(ci([*rsly[0:2], *mt]), dflt.get('TechnologyToStorage'))  for mt in MODE_OF_OPERATION_TECHNOLOGY if TechnologyToStorage.get(ci(([*rsly[0:2],*mt])), dflt.get('TechnologyToStorage')) > 0]), ""
         # S2_RateOfStorageDischarge
-         model += RateOfStorageDischarge.get(ci(rsly)) == pulp.lpSum([RateOfActivity.get(ci([rsly[0], rsly[2], *mt, rsly[3]])) * TechnologyFromStorage.get(ci([*rsly[0:2], *mt]), dflt.get('TechnologyFromStorage')) for mt in MODE_OF_OPERATION_TECHNOLOGY if TechnologyFromStorage.get(ci([*rsly[0:2], *mt]), dflt.get('TechnologyFromStorage')) > 0]), ""
-
+        model += RateOfStorageDischarge.get(ci(rsly)) == pulp.lpSum([RateOfActivity.get(ci([rsly[0], rsly[2], *mt, rsly[3]])) * TechnologyFromStorage.get(ci([*rsly[0:2], *mt]), dflt.get('TechnologyFromStorage')) for mt in MODE_OF_OPERATION_TECHNOLOGY if TechnologyFromStorage.get(ci([*rsly[0:2], *mt]), dflt.get('TechnologyFromStorage')) > 0]), ""
     for rsly in REGION_STORAGE_TIMESLICE_YEAR:
         #S1_and_S2_StorageLevelTimesliceStart  
         if int(rsly[2]) == int(min(TIMESLICE)):
             model += StorageLevelTimesliceStart.get(ci(rsly)) == StorageLevelYearStart.get(ci([*rsly[0:2], rsly[3]])), ""
         else:
-            model += StorageLevelTimesliceStart.get(ci(rsly)) == StorageLevelTimesliceStart.get(ci([*rsly[0:2], str(int(rsly[2])-1), rsly[3]])) + ((RateOfStorageCharge.get(ci([*rsly[0:2], str(int(rsly[2])-1), rsly[3]])) - RateOfStorageDischarge.get(ci([*rsly[0:2], str(int(rsly[2])-1), rsly[3]]))) * YearSplit.get(ci([str(int(rsly[2])-1), rsly[3]]))), ""
-    
-    for rsy in REGION_STORAGE_YEAR:
-        #SC8_StorageRefilling 
-        model += 0 == pulp.lpSum([RateOfActivity.get(ci([rsy[0], *lmt, rsy[2]])) * TechnologyToStorage.get(ci([*rsy[0:2], *lmt[1:3]]), dflt.get('TechnologyToStorage')) * YearSplit.get(ci([lmt[0], rsy[2]])) for lmt in TIMESLICE_MODE_OF_OPERATION_TECHNOLOGY if TechnologyToStorage.get(ci(([*rsy[0:2], *lmt[1:3]])), dflt.get('TechnologyToStorage')) > 0]) - pulp.lpSum([RateOfActivity.get(ci([rsy[0], *lmt, rsy[2]])) * TechnologyFromStorage.get(ci([*rsy[0:2], *lmt[1:3]]), dflt.get('TechnologyFromStorage')) * YearSplit.get(ci([lmt[0], rsy[2]])) for lmt in TIMESLICE_MODE_OF_OPERATION_TECHNOLOGY if TechnologyFromStorage.get(ci([*rsy[0:2], *lmt[1:3]]), dflt.get('TechnologyFromStorage')) > 0]) , ""
+            model += StorageLevelTimesliceStart.get(ci(rsly)) == StorageLevelTimesliceStart.get(ci([*rsly[0:2], str(int(rsly[2])-1), rsly[3]])) - StorageLosses.get(ci([*rsly[0:2], str(int(rsly[2])-1), rsly[3]]))  + ((RateOfStorageCharge.get(ci([*rsly[0:2], str(int(rsly[2])-1), rsly[3]])) - RateOfStorageDischarge.get(ci([*rsly[0:2], str(int(rsly[2])-1), rsly[3]]))) * YearSplit.get(ci([str(int(rsly[2])-1), rsly[3]]))), ""
+
     for rs in REGION_STORAGE:
         #SC8_StorageRefilling 
         model += 0 == pulp.lpSum([RateOfActivity.get(ci([rs[0], *lmty])) * TechnologyToStorage.get(ci([*rs[0:2], *lmty[1:3]]), dflt.get('TechnologyToStorage')) * YearSplit.get(ci([lmty[0], lmty[3]])) for lmty in TIMESLICE_MODE_OF_OPERATION_TECHNOLOGY_YEAR if TechnologyToStorage.get(ci(([*rs[0:2], *lmty[1:3]])), dflt.get('TechnologyToStorage')) > 0]) - pulp.lpSum([RateOfActivity.get(ci([rs[0], *lmty])) * TechnologyFromStorage.get(ci([*rs[0:2], *lmty[1:3]]), dflt.get('TechnologyFromStorage')) * YearSplit.get(ci([lmty[0], lmty[3]])) for lmty in TIMESLICE_MODE_OF_OPERATION_TECHNOLOGY_YEAR if TechnologyFromStorage.get(ci([*rs[0:2], *lmty[1:3]]), dflt.get('TechnologyFromStorage')) > 0]) , ""
@@ -856,7 +871,7 @@ while i <= n:
         model += StorageUpperLimit.get(ci(rsy)) == (AccumulatedNewStorageCapacity.get(ci(rsy)) + ResidualStorageCapacity.get(ci(rsy), dflt.get('ResidualStorageCapacity'))), ""
      
     # SI1_StorageMaxCapacity
-        model += StorageUpperLimit.get(ci(rsy)) <= StorageMaxCapacity.get(ci([rsy[0:2]]), dflt.get('StorageMaxCapacity')), ""
+        model += StorageUpperLimit.get(ci(rsy)) <= StorageMaxCapacity.get(ci(rsy[0:2]), dflt.get('StorageMaxCapacity')), ""
    
     for rsly in REGION_STORAGE_TIMESLICE_YEAR:
         #SC1_LowerLimit
@@ -873,20 +888,21 @@ while i <= n:
         # SI4_UndiscountedCapitalInvestmentStorage
         model += CapitalInvestmentStorage.get(ci(rsy)) == CapitalCostStorage.get(ci(rsy), dflt.get('CapitalCostStorage')) * NewStorageCapacity.get(ci(rsy)), ""
         # SI5_DiscountingCapitalInvestmentStorage
-        model += DiscountedCapitalInvestmentStorage.get(ci(rsy)) == CapitalInvestmentStorage.get(ci(rsy)) * (1/ ((1+DiscountRate.get(rsy[0], dflt.get('DiscountRate')))**(int(rsy[2]) - int(min(YEAR))))), ""
+        model += DiscountedCapitalInvestmentStorage.get(ci(rsy)) == CapitalInvestmentStorage.get(ci(rsy)) * (1/ ((1+DiscountRateSto.get(ci(rsy[0:2]), dflt.get('DiscountRateSto')))**(int(rsy[2]) - int(min(YEAR))))), ""
         # SI6_SalvageValueStorageAtEndOfPeriod1
         if float(int(rsy[2]) + OperationalLifeStorage.get(ci(rsy[0:2]), dflt.get('OperationalLifeStorage'))) - 1 <= float(max(YEAR)):
             model += SalvageValueStorage.get(ci(rsy)) == 0, ""
         # SI7_SalvageValueStorageAtEndOfPeriod2
-        if ((DepreciationMethod.get(rsy[0], dflt.get('DepreciationMethod')) == 1) and (float(int(rsy[2])+OperationalLifeStorage.get(ci(rsy[0:2]), dflt.get('OperationalLifeStorage'))-1) > float(max(YEAR))) and (DiscountRate.get(rsy[0], dflt.get('DiscountRate')) == 0)) or ((DepreciationMethod.get(rsy[0], dflt.get('DepreciationMethod')) == 2) and (float(int(rsy[2])+OperationalLifeStorage.get(ci(rsy[0:2]), dflt.get('OperationalLifeStorage'))-1) > float(max(YEAR)))):
+        if ((DepreciationMethod.get(rsy[0], dflt.get('DepreciationMethod')) == 1) and (float(int(rsy[2])+OperationalLifeStorage.get(ci(rsy[0:2]), dflt.get('OperationalLifeStorage'))-1) > float(max(YEAR))) and (DiscountRateSto.get(ci(rsy[0:2]), dflt.get('DiscountRateSto')) == 0)) or ((DepreciationMethod.get(rsy[0], dflt.get('DepreciationMethod')) == 2) and (float(int(rsy[2])+OperationalLifeStorage.get(ci(rsy[0:2]), dflt.get('OperationalLifeStorage'))-1) > float(max(YEAR)))):
             model += SalvageValueStorage.get(ci(rsy)) == CapitalInvestmentStorage.get(ci(rsy)) * (1-(int(max(YEAR))-int(rsy[2])+1))/OperationalLifeStorage.get(ci(rsy[0:2]), dflt.get('OperationalLifeStorage')), ""
         # SI8_SalvageValueStorageAtEndOfPeriod3
-        if (DepreciationMethod.get(rsy[0], dflt.get('DepreciationMethod')) == 1) and (float(int(rsy[2])+OperationalLifeStorage.get(ci(rsy[0:2]), dflt.get('OperationalLifeStorage'))-1) > float(max(YEAR))) and (DiscountRate.get(rsy[0], dflt.get('DiscountRate')) > 0):
-            model += SalvageValueStorage.get(ci(rsy)) == CapitalInvestmentStorage.get(ci(rsy)) * (1-(((1+DiscountRate.get(rsy[0], dflt.get('DiscountRate')))**(int(max(YEAR)) - int(rsy[2])+1)-1)/((1+DiscountRate.get(rsy[0], dflt.get('DiscountRate')))**OperationalLifeStorage.get(ci(rsy[0:2]), dflt.get('OperationalLifeStorage'))-1))), ""
+        if (DepreciationMethod.get(rsy[0], dflt.get('DepreciationMethod')) == 1) and (float(int(rsy[2])+OperationalLifeStorage.get(ci(rsy[0:2]), dflt.get('OperationalLifeStorage'))-1) > float(max(YEAR))) and (DiscountRateSto.get(ci(rsy[0:2]), dflt.get('DiscountRateSto')) > 0):
+            model += SalvageValueStorage.get(ci(rsy)) == CapitalInvestmentStorage.get(ci(rsy)) * (1-(((1+DiscountRateSto.get(ci(rsy[0:2]), dflt.get('DiscountRateSto')))**(int(max(YEAR)) - int(rsy[2])+1)-1)/((1+DiscountRateSto.get(ci(rsy[0:2]), dflt.get('DiscountRateSto')))**OperationalLifeStorage.get(ci(rsy[0:2]), dflt.get('OperationalLifeStorage'))-1))), ""
         # SI9_SalvageValueStorageDiscountedToStartYear
-        model += DiscountedSalvageValueStorage.get(ci(rsy)) == SalvageValueStorage.get(ci(rsy)) * (1 /((1+DiscountRate.get(rsy[0], dflt.get('DiscountRate')))**(int(max(YEAR))-int(min(YEAR))+1))), ""
+        model += DiscountedSalvageValueStorage.get(ci(rsy)) == SalvageValueStorage.get(ci(rsy)) * (1 /((1+DiscountRateSto.get(ci(rsy[0:2]), dflt.get('DiscountRateSto')))**(int(max(YEAR))-int(min(YEAR))+1))), ""
         # SI10_TotalDiscountedCostByStorage
         model += TotalDiscountedStorageCost.get(ci(rsy)) == DiscountedCapitalInvestmentStorage.get(ci(rsy))-DiscountedSalvageValueStorage.get(ci(rsy)), ""
+    
 
     # ====  Capital Costs  ====
 
@@ -894,21 +910,23 @@ while i <= n:
         # CC1_UndiscountedCapitalInvestment
         model += CapitalInvestment.get(ci(rty)) == CapitalCost.get(ci(rty), dflt.get('CapitalCost')) * NewCapacity.get(ci(rty)),  ""
         # CC2_DiscountingCapitalInvestment
-        model += DiscountedCapitalInvestment.get(ci(rty)) == CapitalInvestment.get(ci(rty)) * (1/((1 + DiscountRate.get(rty[0], dflt.get('DiscountRate'))) ** (int(rty[2]) - int(min(YEAR))))), ""
-
+        model += DiscountedCapitalInvestment.get(ci(rty)) == CapitalInvestment.get(ci(rty)) * (1/((1 + DiscountRateTech.get(ci(rty[0:2]), dflt.get('DiscountRateTech'))) ** (int(rty[2]) - int(min(YEAR))))), ""
+        
+        
+    for rty in REGION_TECHNOLOGY_YEAR:
     # ====  Salvage Value  ====
 
         # SV1_SalvageValueAtEndOfPeriod1
-        if (DepreciationMethod.get(rty[0], dflt.get('DepreciationMethod')) == 1) and (float(int(rty[2]) + OperationalLife.get(ci(rty[0:2]), dflt.get('OperationalLife'))) - 1 > float(max(YEAR))) and (DiscountRate.get(rty[0], dflt.get('DiscountRate')) > 0):
-            model += SalvageValue.get(ci(rty)) == CapitalCost.get(ci(rty), dflt.get('CapitalCost')) * NewCapacity.get(ci(rty)) * (1 - (((1 + DiscountRate.get(rty[0], dflt.get('DiscountRate'))) ** (int(max(YEAR)) - int(rty[2]) + 1) - 1) / ((1 + DiscountRate.get(rty[0], dflt.get('DiscountRate'))) ** OperationalLife.get(ci(rty[0:2]), dflt.get('OperationalLife')) - 1))), ""
+        if (DepreciationMethod.get(rty[0], dflt.get('DepreciationMethod')) == 1) and (float(int(rty[2]) + OperationalLife.get(ci(rty[0:2]), dflt.get('OperationalLife'))) - 1 > float(max(YEAR))) and (DiscountRateTech.get(ci(rty[0:2]), dflt.get('DiscountRateTech')) > 0):
+            model += SalvageValue.get(ci(rty)) == CapitalCost.get(ci(rty), dflt.get('CapitalCost')) * NewCapacity.get(ci(rty)) * (1 - (((1 +  DiscountRateTech.get(ci(rty[0:2]), dflt.get('DiscountRateTech'))) ** (int(max(YEAR)) - int(rty[2]) + 1) - 1) / ((1 +  DiscountRateTech.get(ci(rty[0:2]), dflt.get('DiscountRateTech'))) ** OperationalLife.get(ci(rty[0:2]), dflt.get('OperationalLife')) - 1))), ""
         # SV2_SalvageValueAtEndOfPeriod2
-        if ((DepreciationMethod.get(rty[0], dflt.get('DepreciationMethod')) == 1) and (float(int(rty[2]) + OperationalLife.get(ci(rty[0:2]), dflt.get('OperationalLife'))) - 1 > float(max(YEAR))) and (DiscountRate.get(rty[0], dflt.get('DiscountRate')) == 0)) or ((DepreciationMethod.get(rty[0], dflt.get('DepreciationMethod')) == 2) and (float(int(rty[2]) + OperationalLife.get(ci(rty[0:2]), dflt.get('OperationalLife'))) - 1 > float(max(YEAR)))):
+        if ((DepreciationMethod.get(rty[0], dflt.get('DepreciationMethod')) == 1) and (float(int(rty[2]) + OperationalLife.get(ci(rty[0:2]), dflt.get('OperationalLife'))) - 1 > float(max(YEAR))) and ( DiscountRateTech.get(ci(rty[0:2]), dflt.get('DiscountRateTech')) == 0)) or ((DepreciationMethod.get(rty[0], dflt.get('DepreciationMethod')) == 2) and (float(int(rty[2]) + OperationalLife.get(ci(rty[0:2]), dflt.get('OperationalLife'))) - 1 > float(max(YEAR)))):
             model += SalvageValue.get(ci(rty)) == CapitalCost.get(ci(rty), dflt.get('CapitalCost')) * NewCapacity.get(ci(rty)) * (1 - (int(max(YEAR)) - int(rty[2]) + 1) / OperationalLife.get(ci(rty[0:2]), dflt.get('OperationalLife'))), ""
         # SV3_SalvageValueAtEndOfPeriod3)
         if float(int(rty[2]) + OperationalLife.get(ci(rty[0:2]), dflt.get('OperationalLife')) - 1) <= float(max(YEAR)):
             model += SalvageValue.get(ci(rty)) == 0, ""
         # SV4_SalvageValueDiscountedToStartYear
-        model += DiscountedSalvageValue.get(ci(rty)) == SalvageValue.get(ci(rty)) * (1 / ((1 + DiscountRate.get(rty[0], dflt.get('DiscountRate'))) ** (1 + int(max(YEAR)) - int(min(YEAR))))), ""
+        model += DiscountedSalvageValue.get(ci(rty)) == SalvageValue.get(ci(rty)) * (1 / ((1 +  DiscountRateTech.get(ci(rty[0:2]), dflt.get('DiscountRateTech'))) ** (1 + int(max(YEAR)) - int(min(YEAR))))), ""
 
     # ====  Operating Costs  ====
 
@@ -919,7 +937,7 @@ while i <= n:
         # OC3_OperatingCostsTotalAnnual
         model += OperatingCost.get(ci(rty)) == AnnualFixedOperatingCost.get(ci(rty)) + AnnualVariableOperatingCost.get(ci(rty)), ""
         # OC4_DiscountedOperatingCostsTotalAnnual
-        model += DiscountedOperatingCost.get(ci(rty)) == OperatingCost.get(ci(rty)) * (1 / ((1 + DiscountRate.get(rty[0], dflt.get('DiscountRate'))) ** (int(rty[2]) - int(min(YEAR)) + 0.5))), ""
+        model += DiscountedOperatingCost.get(ci(rty)) == OperatingCost.get(ci(rty)) * (1 / ((1 +  DiscountRateTech.get(ci(rty[0:2]), dflt.get('DiscountRateTech'))) ** (int(rty[2]) - int(min(YEAR)) + 0.5))), ""
 
     # ====  Total Discounted Costs  ====
 
@@ -965,7 +983,7 @@ while i <= n:
         # TAC2_TotalModelHorizonTechnologyActivityUpperLimit
         if TotalTechnologyModelPeriodActivityUpperLimit.get(ci(rt), dflt.get('TotalTechnologyModelPeriodActivityUpperLimit')) > 0:
             model += TotalTechnologyModelPeriodActivity.get(ci(rt)) <= TotalTechnologyModelPeriodActivityUpperLimit.get(ci(rt), dflt.get('TotalTechnologyModelPeriodActivityUpperLimit')), ""
-        # TAC3_TotalModelHorizenTechnologyActivityLowerLimit
+        #TAC3_TotalModelHorizenTechnologyActivityLowerLimit
         if TotalTechnologyModelPeriodActivityLowerLimit.get(ci(rt), dflt.get('TotalTechnologyModelPeriodActivityLowerLimit')) > 0:
             model += TotalTechnologyModelPeriodActivity.get(ci(rt)) >= TotalTechnologyModelPeriodActivityLowerLimit.get(ci(rt), dflt.get('TotalTechnologyModelPeriodActivityLowerLimit')), ""
 
@@ -1019,7 +1037,7 @@ while i <= n:
         # E4_EmissionsPenaltyByTechnology
         model += AnnualTechnologyEmissionsPenalty.get(ci(rty)) == pulp.lpSum([AnnualTechnologyEmissionPenaltyByEmission.get(ci([rty[0], e, *rty[1:3]])) for e in EMISSION]), ""
         # E5_DiscountedEmissionsPenaltyByTechnology
-        model += DiscountedTechnologyEmissionsPenalty.get(ci(rty)) == AnnualTechnologyEmissionsPenalty.get(ci(rty)) * (1 / ((1 + DiscountRate.get(rty[0], dflt.get('DiscountRate'))) ** (int(rty[2]) - int(min(YEAR)) + 0.5))), ""
+        model += DiscountedTechnologyEmissionsPenalty.get(ci(rty)) == AnnualTechnologyEmissionsPenalty.get(ci(rty)) * (1 / ((1 + DiscountRateTech.get(ci(rty[0:2]), dflt.get('DiscountRateTech'))) ** (int(rty[2]) - int(min(YEAR)) + 0.5))), ""
 
     for rey in REGION_EMISSION_YEAR:
         # E6_EmissionsAccounting1
