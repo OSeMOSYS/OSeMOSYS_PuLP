@@ -1086,7 +1086,7 @@ while i <= mcs_num:
                     model += SalvageValueStorage[r][s][y] == 0, ""
                 # SI7_SalvageValueStorageAtEndOfPeriod2
                 if ((DepreciationMethod[r] == 1) and (float(int(y)+OperationalLifeStorage[r][s]-1) > float(max(YEAR))) and (DiscountRate[r] == 0)) or ((DepreciationMethod[r] == 2) and (float(int(y)+OperationalLifeStorage[r][s]-1) > float(max(YEAR)))):
-                    model += SalvageValueStorage[r][s][y] == CapitalInvestmentStorage[r][s][y] * (1-(int(max(YEAR))-int(y)+1))/OperationalLifeStorage[r][s], ""
+                    model += SalvageValueStorage[r][s][y] == CapitalInvestmentStorage[r][s][y] * (1-(int(max(YEAR))-int(y)+1)/OperationalLifeStorage[r][s]), ""
                 # SI8_SalvageValueStorageAtEndOfPeriod3
                 if (DepreciationMethod[r] == 1) and (float(int(y)+OperationalLifeStorage[r][s]-1) > float(max(YEAR))) and (DiscountRate[r] > 0):
                     model += SalvageValueStorage[r][s][y] == CapitalInvestmentStorage[r][s][y] * (1-(((1+DiscountRate[r])**(int(max(YEAR)) - int(y)+1)-1)/((1+DiscountRate[r])**OperationalLifeStorage[r][s]-1))), ""

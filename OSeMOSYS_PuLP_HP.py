@@ -894,7 +894,7 @@ while i <= n:
             model += SalvageValueStorage.get(ci(rsy)) == 0, ""
         # SI7_SalvageValueStorageAtEndOfPeriod2
         if ((DepreciationMethod.get(rsy[0], dflt.get('DepreciationMethod')) == 1) and (float(int(rsy[2])+OperationalLifeStorage.get(ci(rsy[0:2]), dflt.get('OperationalLifeStorage'))-1) > float(max(YEAR))) and (DiscountRateSto.get(ci(rsy[0:2]), dflt.get('DiscountRateSto')) == 0)) or ((DepreciationMethod.get(rsy[0], dflt.get('DepreciationMethod')) == 2) and (float(int(rsy[2])+OperationalLifeStorage.get(ci(rsy[0:2]), dflt.get('OperationalLifeStorage'))-1) > float(max(YEAR)))):
-            model += SalvageValueStorage.get(ci(rsy)) == CapitalInvestmentStorage.get(ci(rsy)) * (1-(int(max(YEAR))-int(rsy[2])+1))/OperationalLifeStorage.get(ci(rsy[0:2]), dflt.get('OperationalLifeStorage')), ""
+            model += SalvageValueStorage.get(ci(rsy)) == CapitalInvestmentStorage.get(ci(rsy)) * (1-(int(max(YEAR))-int(rsy[2])+1)/OperationalLifeStorage.get(ci(rsy[0:2]), dflt.get('OperationalLifeStorage'))), ""
         # SI8_SalvageValueStorageAtEndOfPeriod3
         if (DepreciationMethod.get(rsy[0], dflt.get('DepreciationMethod')) == 1) and (float(int(rsy[2])+OperationalLifeStorage.get(ci(rsy[0:2]), dflt.get('OperationalLifeStorage'))-1) > float(max(YEAR))) and (DiscountRateSto.get(ci(rsy[0:2]), dflt.get('DiscountRateSto')) > 0):
             model += SalvageValueStorage.get(ci(rsy)) == CapitalInvestmentStorage.get(ci(rsy)) * (1-(((1+DiscountRateSto.get(ci(rsy[0:2]), dflt.get('DiscountRateSto')))**(int(max(YEAR)) - int(rsy[2])+1)-1)/((1+DiscountRateSto.get(ci(rsy[0:2]), dflt.get('DiscountRateSto')))**OperationalLifeStorage.get(ci(rsy[0:2]), dflt.get('OperationalLifeStorage'))-1))), ""
