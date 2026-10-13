@@ -955,7 +955,7 @@ while i <= n:
         model += TotalCapacityAnnual.get(ci(rty)) <= TotalAnnualMaxCapacity.get(ci(rty), dflt.get('TotalAnnualMaxCapacity')), ""
         # TCC2_TotalAnnualMinCapacityConstraint
         if TotalAnnualMinCapacity.get(ci(rty), dflt.get('TotalAnnualMinCapacity')) > 0:
-            model += TotalCapacityAnnual.get(ci(rty)) >= TotalAnnualMinCapacity.get(ci(rty), dflt.get('TotalAnnualMaxCapacity')), ""
+            model += TotalCapacityAnnual.get(ci(rty)) >= TotalAnnualMinCapacity.get(ci(rty), dflt.get('TotalAnnualMinCapacity')), ""
 
     # ====  New Capacity Constraints  ====
 
